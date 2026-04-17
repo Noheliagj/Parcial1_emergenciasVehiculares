@@ -1,0 +1,23 @@
+# === ANGULAR ===
+dist/
+node_modules/
+.angular/
+.sass-cache/
+
+# === PYTHON ===
+__pycache__/
+venv/
+env/
+.env
+
+# === FLUTTER ===
+.dart_tool/
+build/
+.pub-cache/
+.flutter-plugins
+
+# === SISTEMA ===
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
