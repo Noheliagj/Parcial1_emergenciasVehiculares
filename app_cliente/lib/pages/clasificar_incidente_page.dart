@@ -153,14 +153,14 @@ void _mostrarError(String mensaje) {
                       label: const Text("Generar Ficha de Incidente", style: TextStyle(color: Colors.white, fontSize: 16)),
                       onPressed: () {
                         // Navegamos a la nueva pantalla pasándole los datos
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => FichaResumenPage(
-                              datosIA: _resultadoIA!,
-                              imagenBytes: _imagenBytes!,
-                            ),
-                          ),
+                        Navigator.pushReplacement(
+                         context, 
+                         MaterialPageRoute(
+                           builder: (context) => FichaResumenPage(
+                               datosFicha: _resultadoIA!,
+                               imagen: _imagenSeleccionada!  // <-- ¡ESTA ES LA LÍNEA MÁGICA!
+                           )
+                         )
                         );
                       },
                     ),

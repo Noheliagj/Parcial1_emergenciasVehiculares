@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
 import 'dart:convert';
 import '../api_config.dart';
 import '../theme.dart';
@@ -81,6 +82,26 @@ class _EmergenciaPageState extends State<EmergenciaPage> {
         return;
       }
 
+      double? latitud;
+      double? longitud;
+      try {
+        var permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+        }
+
+        if (permission == LocationPermission.always ||
+            permission == LocationPermission.whileInUse) {
+          final posicion = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.high,
+          );
+          latitud = posicion.latitude;
+          longitud = posicion.longitude;
+        }
+      } catch (_) {
+        // Si falla GPS seguimos con el envío manual.
+      }
+
       final res = await http.post(
         Uri.parse('${ApiConfig.baseUrl}/emergencias/'),
         headers: {'Content-Type': 'application/json'},
@@ -89,6 +110,8 @@ class _EmergenciaPageState extends State<EmergenciaPage> {
           'vehiculo_id': _vehiculoSeleccionadoId,
           'direccion': ubicacionCtrl.text,
           'descripcion': descripcionCtrl.text,
+          'latitud': latitud,
+          'longitud': longitud,
         }),
       );
 

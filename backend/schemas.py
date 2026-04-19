@@ -37,6 +37,10 @@ class EmergenciaNueva(BaseModel):
     vehiculo_id: int
     direccion: str
     descripcion: str
+    latitud: Optional[float] = None
+    longitud: Optional[float] = None
+    tipo_ia: Optional[str] = None
+    severidad_ia: Optional[str] = None
     audio_url: Optional[str] = None
 
 class EmergenciaResponse(BaseModel):
@@ -45,6 +49,10 @@ class EmergenciaResponse(BaseModel):
     vehiculo_id: int
     direccion: str
     descripcion: str
+    latitud: Optional[float] = None
+    longitud: Optional[float] = None
+    tipo_ia: Optional[str] = None
+    severidad_ia: Optional[str] = None
     estado: str
     audio_url: Optional[str] = None
     transcripcion: Optional[str] = None

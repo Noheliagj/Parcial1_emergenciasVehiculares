@@ -4,12 +4,17 @@ import { Observable } from 'rxjs';
 
 export interface Emergencia {
   id: number;
+  id_emergencia?: number;
   cliente_id?: number;
   vehiculo_id?: number;
   taller_id?: number;
   tecnico_id?: number;
   direccion: string;
   descripcion: string;
+  latitud?: number;
+  longitud?: number;
+  tipo_ia?: string;
+  severidad_ia?: string;
   estado: string;
   observaciones?: string;
   transcripcion?: string;

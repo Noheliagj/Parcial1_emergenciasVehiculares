@@ -63,6 +63,10 @@ class Emergencia(Base):
     # Datos de ubicación y problema
     direccion = Column(String) # Dirección manual escrita por el cliente
     descripcion = Column(String)
+    latitud = Column(Float, nullable=True)
+    longitud = Column(Float, nullable=True)
+    tipo_ia = Column(String(100), nullable=True)
+    severidad_ia = Column(String(50), nullable=True)
     estado = Column(String, default="Pendiente") # Pendiente, Asignada, Aceptada, Rechazada, En Camino, En Proceso, Finalizado
 
     # Campos para audio y transcripción (CU-10)

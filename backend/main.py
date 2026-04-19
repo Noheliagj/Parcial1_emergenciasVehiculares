@@ -13,8 +13,9 @@ import models
 import schemas
 from database import engine, get_db
 import google.generativeai as genai
-
-# Configurar Gemini AI
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
 genai.configure(api_key="AIzaSyBHnYhdMJbV96l7e57vEaofVIQMyeJvoyw")
 
 # El Gerente abre el restaurante
@@ -132,6 +133,10 @@ def reportar_emergencia(formulario: schemas.EmergenciaNueva, db: Session = Depen
         vehiculo_id=formulario.vehiculo_id,
         direccion=formulario.direccion,
         descripcion=formulario.descripcion,
+        latitud=formulario.latitud,
+        longitud=formulario.longitud,
+        tipo_ia=formulario.tipo_ia,
+        severidad_ia=formulario.severidad_ia,
         audio_url=formulario.audio_url,
         estado="Pendiente"
     )
@@ -211,6 +216,32 @@ def consultar_estado_emergencia(emergencia_id: int, db: Session = Depends(get_db
     }
 
 # ==========================================
+# CU-07: VISUALIZAR TALLER ASIGNADO
+# ==========================================
+@app.get("/api/emergencias/{solicitud_id}/taller-asignado")
+def obtener_taller_asignado(solicitud_id: int, db: Session = Depends(get_db)):
+    emergencia = db.query(models.Emergencia).filter(models.Emergencia.id == solicitud_id).first()
+    if not emergencia:
+        raise HTTPException(status_code=404, detail="Emergencia no encontrada")
+
+    taller_info = None
+    if emergencia.taller_id:
+        taller = db.query(models.Taller).filter(models.Taller.id == emergencia.taller_id).first()
+        if taller:
+            taller_info = {
+                "id": taller.id,
+                "nombre_taller": taller.nombre_taller,
+                "telefono": taller.telefono,
+                "direccion": taller.direccion
+            }
+
+    return {
+        "solicitud_id": emergencia.id,
+        "estado": emergencia.estado,
+        "taller": taller_info
+    }
+
+# ==========================================
 # CU-06: OBTENER EMERGENCIAS POR CLIENTE
 # ==========================================
 @app.get("/api/clientes/{cliente_id}/emergencias")
@@ -237,6 +268,10 @@ def obtener_emergencias_de_cliente(cliente_id: int, db: Session = Depends(get_db
             "id": em.id,
             "direccion": em.direccion,
             "descripcion": em.descripcion,
+            "latitud": em.latitud,
+            "longitud": em.longitud,
+            "tipo_ia": em.tipo_ia,
+            "severidad_ia": em.severidad_ia,
             "estado": em.estado,
             "fecha_creacion": em.fecha_creacion,
             "taller_asignado": taller_nombre,
@@ -282,6 +317,34 @@ def aceptar_solicitud(emergencia_id: int, db: Session = Depends(get_db),
     db.commit()
 
     return {"mensaje": "Solicitud aceptada exitosamente", "datos": emergencia}
+
+# ==========================================
+# COMPATIBILIDAD: ACEPTAR SOLICITUD (RUTA LEGACY)
+# ==========================================
+@app.patch("/emergencias/{emergencia_id}/aceptar")
+def aceptar_solicitud_legacy(emergencia_id: int, db: Session = Depends(get_db)):
+    emergencia = db.query(models.Emergencia).filter(models.Emergencia.id == emergencia_id).first()
+    if not emergencia:
+        raise HTTPException(status_code=404, detail="Emergencia no encontrada")
+
+    if emergencia.estado not in ["Pendiente", "Asignada"]:
+        raise HTTPException(status_code=400, detail=f"No se puede aceptar. Estado actual: {emergencia.estado}")
+
+    estado_anterior = emergencia.estado
+    emergencia.estado = "Aceptada"
+    emergencia.fecha_actualizacion = datetime.now()
+
+    historial = models.HistorialEstado(
+        emergencia_id=emergencia_id,
+        estado_anterior=estado_anterior,
+        estado_nuevo="Aceptada",
+        descripcion="El taller aceptó la solicitud (ruta legacy)"
+    )
+    db.add(historial)
+    db.commit()
+    db.refresh(emergencia)
+
+    return {"mensaje": "Emergencia aceptada con éxito", "datos": emergencia}
 
 # ==========================================
 # CU-08: RECHAZAR SOLICITUD
