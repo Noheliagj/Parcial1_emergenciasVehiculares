@@ -1,0 +1,146 @@
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon">🔧</span>
+      <div>
+        <h2>TallerPro</h2>
+        <small>Sistema de Gestión</small>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item" [class.active]="seccion === 'inicio'" (click)="seccion = 'inicio'">
+        <span class="nav-icon">🏠</span>
+        <span>Inicio</span>
+      </button>
+      <button class="nav-item danger" [class.active]="seccion === 'emergencias'" (click)="seccion = 'emergencias'">
+        <span class="nav-icon">🚨</span>
+        <span>Emergencias</span>
+        <span class="badge" *ngIf="lista.length > 0">{{ lista.length }}</span>
+      </button>
+      <button class="nav-item" [class.active]="seccion === 'cuenta'" (click)="seccion = 'cuenta'">
+        <span class="nav-icon">👤</span>
+        <span>Mi Cuenta</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" (click)="salir()">
+        <span>⏻</span> Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="main-content">
+
+    <!-- INICIO -->
+    <div *ngIf="seccion === 'inicio'" class="section-fade">
+      <div class="page-header">
+        <div>
+          <h1>¡Bienvenido, {{ datosTaller?.nombre_taller }}!</h1>
+          <p>Revisa las emergencias activas o consulta la información de tu cuenta.</p>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card red">
+          <div class="stat-icon">🚨</div>
+          <div class="stat-info">
+            <span class="stat-num">{{ lista.length }}</span>
+            <span class="stat-label">Emergencias pendientes</span>
+          </div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <span class="stat-num">0</span>
+            <span class="stat-label">Autos atendidos hoy</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMERGENCIAS -->
+    <div *ngIf="seccion === 'emergencias'" class="section-fade">
+      <div class="page-header">
+        <div>
+          <h1>Emergencias Pendientes</h1>
+          <p>Se actualiza automáticamente cada 5 segundos.</p>
+        </div>
+        <span class="live-badge">● En vivo</span>
+      </div>
+
+      <div class="empty-state" *ngIf="lista.length === 0">
+        <span>🛣️</span>
+        <h3>Sin emergencias activas</h3>
+        <p>No hay vehículos reportados en este momento.</p>
+      </div>
+
+      <div class="cards-grid">
+        <div class="emergency-card" *ngFor="let em of lista">
+          <div class="card-header">
+            <span class="card-id">Solicitud #{{ em.id }}</span>
+            <span class="status-badge">{{ em.estado }}</span>
+          </div>
+          <div class="card-body">
+            <div class="card-field">
+              <span class="field-icon">📍</span>
+              <div>
+                <label>Ubicación</label>
+                <p>{{ em.direccion }}</p>
+              </div>
+            </div>
+            <div class="card-field">
+              <span class="field-icon">📝</span>
+              <div>
+                <label>Descripción</label>
+                <p>{{ em.descripcion }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="btn-atender">Atender solicitud →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MI CUENTA -->
+    <div *ngIf="seccion === 'cuenta'" class="section-fade">
+  <div class="page-header">
+    <div>
+      <h1>Mi Cuenta</h1>
+      <p>Información registrada de tu taller.</p>
+    </div>
+  </div>
+
+  <div class="account-card">
+    <div class="account-avatar">
+      {{ datosTaller?.nombre_taller ? datosTaller.nombre_taller.charAt(0) : 'T' }}
+    </div>
+
+    <div class="account-fields">
+      <div class="account-field">
+        <label>Nombre del Taller</label>
+        <p><strong>{{ datosTaller?.nombre_taller || 'No disponible' }}</strong></p>
+      </div>
+
+      <div class="account-field">
+        <label>Correo Electrónico</label>
+        <p>{{ datosTaller?.email || 'No disponible' }}</p>
+      </div>
+
+      <div class="account-field">
+        <label>Teléfono</label>
+        <p>{{ datosTaller?.telefono || 'Sin teléfono registrado' }}</p>
+      </div>
+
+      <div class="account-field">
+        <label>Dirección</label>
+        <p>{{ datosTaller?.direccion || 'Sin dirección registrada' }}</p>
+      </div>
+    </div>
+  </div>
+</div>

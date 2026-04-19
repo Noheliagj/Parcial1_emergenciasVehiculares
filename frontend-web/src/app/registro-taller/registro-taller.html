@@ -1,0 +1,43 @@
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <span class="logo-icon">🛠️</span>
+      <h1>Registro de Taller</h1>
+      <p>Crea tu cuenta para comenzar</p>
+    </div>
+
+    <div class="form-group">
+      <label>Nombre del Taller</label>
+      <input type="text" [(ngModel)]="taller.nombre_taller" placeholder="Ej: Taller Mecánico Central">
+    </div>
+
+    <div class="form-group">
+      <label>Dirección</label>
+      <input type="text" [(ngModel)]="taller.direccion" placeholder="Av. Principal #123">
+    </div>
+
+    <div class="form-group">
+      <label>Teléfono</label>
+      <input type="text" [(ngModel)]="taller.telefono" placeholder="70000000">
+    </div>
+
+    <div class="form-group">
+      <label>Correo Electrónico</label>
+      <input type="email" [(ngModel)]="taller.email" placeholder="taller@ejemplo.com">
+    </div>
+
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" [(ngModel)]="taller.contrasena" placeholder="Mínimo 8 caracteres">
+    </div>
+
+    <button class="btn-primary" (click)="guardarTaller()">Crear cuenta</button>
+
+    <p class="auth-footer">
+      ¿Ya tienes cuenta?
+      <a routerLink="/login">Inicia sesión</a>
+    </p>
+
+  </div>
+</div>
