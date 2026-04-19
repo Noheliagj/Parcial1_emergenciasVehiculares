@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../api_config.dart';
 import '../theme.dart';
 import 'registro_page.dart';
 import 'dashboard_page.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final http.Client? client;
+
+  const LoginPage({super.key, this.client});
+
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -17,6 +21,26 @@ class _LoginPageState extends State<LoginPage> {
   bool _ocultarPass = true;
   bool _cargando = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _cargarCuentaDemo();
+  }
+
+  @override
+  void dispose() {
+    emailCtrl.dispose();
+    passCtrl.dispose();
+    super.dispose();
+  }
+
+  void _cargarCuentaDemo() {
+    if (emailCtrl.text.isEmpty && passCtrl.text.isEmpty) {
+      emailCtrl.text = 'demo.cliente@si2.local';
+      passCtrl.text = '1234';
+    }
+  }
+
   Future<void> iniciarSesion() async {
     if (emailCtrl.text.isEmpty || passCtrl.text.isEmpty) {
       _snack('Por favor ingresa todos los campos', Colors.orange);
@@ -24,24 +48,45 @@ class _LoginPageState extends State<LoginPage> {
     }
     setState(() => _cargando = true);
     try {
-      final res = await http.post(
-        Uri.parse('http://localhost:8000/login-cliente/'), // <--- COMA CORREGIDA ✅
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': emailCtrl.text, 'contrasena': passCtrl.text}),
-      );
+      final clienteHttp = widget.client;
+      final res = clienteHttp != null
+          ? await clienteHttp.post(
+              Uri.parse('${ApiConfig.baseUrl}/login-cliente/'),
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({'email': emailCtrl.text, 'contrasena': passCtrl.text}),
+            )
+          : await http.post(
+              Uri.parse('${ApiConfig.baseUrl}/login-cliente/'),
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({'email': emailCtrl.text, 'contrasena': passCtrl.text}),
+            );
       if (res.statusCode == 200) {
         final datos = jsonDecode(res.body);
         Navigator.pushReplacement(context, MaterialPageRoute(
           builder: (_) => DashboardPage(clienteId: datos['usuario_id']),
         ));
       } else {
-        _snack('Correo o contraseña incorrectos', AppTheme.danger);
+        final detalle = _extraerDetalleError(res.body);
+        _snack(detalle ?? 'Correo o contraseña incorrectos', AppTheme.danger);
       }
     } catch (e) {
       _snack('Error de conexión con el servidor', AppTheme.danger);
     } finally {
       setState(() => _cargando = false);
     }
+  }
+
+  String? _extraerDetalleError(String body) {
+    try {
+      final datos = jsonDecode(body);
+      if (datos is Map<String, dynamic>) {
+        final detalle = datos['detail'];
+        if (detalle is String && detalle.isNotEmpty) {
+          return detalle;
+        }
+      }
+    } catch (_) {}
+    return null;
   }
 
   void _snack(String msg, Color color) {
@@ -79,6 +124,14 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 6),
                 const Text('Inicia sesión en tu cuenta', style: TextStyle(fontSize: 15, color: AppTheme.textMuted)),
                 const SizedBox(height: 40),
+
+                TextButton.icon(
+                  onPressed: _cargarCuentaDemo,
+                  icon: const Icon(Icons.verified_user_outlined),
+                  label: const Text('Usar cuenta demo'),
+                ),
+
+                const SizedBox(height: 12),
 
                 // Campos
                 TextField(

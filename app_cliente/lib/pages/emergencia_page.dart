@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../api_config.dart';
 import '../theme.dart';
 
 class EmergenciaPage extends StatefulWidget {
@@ -14,6 +15,48 @@ class _EmergenciaPageState extends State<EmergenciaPage> {
   final ubicacionCtrl  = TextEditingController();
   final descripcionCtrl = TextEditingController();
   bool _enviando = false;
+  bool _cargandoVehiculos = true;
+  String? _errorVehiculos;
+  List<Map<String, dynamic>> _vehiculos = [];
+  int? _vehiculoSeleccionadoId;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarVehiculos();
+  }
+
+  Future<void> _cargarVehiculos() async {
+    try {
+      final respuesta = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/vehiculos/cliente/${widget.clienteId}'),
+      );
+
+      if (respuesta.statusCode == 200) {
+        final datos = jsonDecode(respuesta.body) as List<dynamic>;
+        final vehiculos = datos
+            .map((item) => Map<String, dynamic>.from(item as Map))
+            .toList();
+
+        setState(() {
+          _vehiculos = vehiculos;
+          _vehiculoSeleccionadoId = vehiculos.isNotEmpty ? vehiculos.first['id'] as int? : null;
+          _cargandoVehiculos = false;
+          _errorVehiculos = null;
+        });
+      } else {
+        setState(() {
+          _errorVehiculos = 'No se pudieron cargar los vehículos registrados.';
+          _cargandoVehiculos = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorVehiculos = 'Error de conexión al cargar vehículos.';
+        _cargandoVehiculos = false;
+      });
+    }
+  }
 
   Future<void> enviar() async {
     // 1. Validación de campos vacíos
@@ -29,15 +72,21 @@ class _EmergenciaPageState extends State<EmergenciaPage> {
     setState(() => _enviando = true);
     
     try {
+      if (_vehiculoSeleccionadoId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Primero registra o selecciona un vehículo'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        ));
+        return;
+      }
+
       final res = await http.post(
-        // 2. IP CORREGIDA PARA WEB
-        Uri.parse('http://localhost:8000/emergencias/'),
+        Uri.parse('${ApiConfig.baseUrl}/emergencias/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'cliente_id': widget.clienteId,
-          // ⚠️ OJO: Asegúrate de tener un vehículo con ID 1 en tu BD, 
-          // o FastAPI lo rechazará por error de llave foránea.
-          'vehiculo_id': 1, 
+          'vehiculo_id': _vehiculoSeleccionadoId,
           'direccion': ubicacionCtrl.text,
           'descripcion': descripcionCtrl.text,
         }),
@@ -110,6 +159,68 @@ class _EmergenciaPageState extends State<EmergenciaPage> {
             const Text('Detalles del incidente',
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppTheme.textMain)),
             const SizedBox(height: 20),
+
+            if (_cargandoVehiculos)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_errorVehiculos != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(_errorVehiculos!, style: const TextStyle(color: Colors.red)),
+                    const SizedBox(height: 8),
+                    OutlinedButton(
+                      onPressed: _cargandoVehiculos ? null : _cargarVehiculos,
+                      child: const Text('Reintentar cargar vehículos'),
+                    ),
+                  ],
+                ),
+              )
+            else if (_vehiculos.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'No tienes vehículos registrados. Registra uno antes de reportar una emergencia.',
+                      style: TextStyle(color: Colors.orange),
+                    ),
+                    const SizedBox(height: 8),
+                    OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Volver'),
+                    ),
+                  ],
+                ),
+              )
+            else
+              DropdownButtonFormField<int>(
+                value: _vehiculoSeleccionadoId,
+                decoration: const InputDecoration(
+                  labelText: 'Vehículo asociado',
+                  prefixIcon: Icon(Icons.directions_car_outlined, color: AppTheme.textMuted),
+                ),
+                items: _vehiculos
+                    .map(
+                      (vehiculo) => DropdownMenuItem<int>(
+                        value: vehiculo['id'] as int,
+                        child: Text('${vehiculo['marca']} ${vehiculo['modelo']} - ${vehiculo['placa']}'),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _vehiculoSeleccionadoId = value;
+                  });
+                },
+              ),
+
+            const SizedBox(height: 16),
 
             TextField(
               controller: ubicacionCtrl,

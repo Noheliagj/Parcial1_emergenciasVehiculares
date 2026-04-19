@@ -17,7 +17,7 @@
       <button class="nav-item danger" [class.active]="seccion === 'emergencias'" (click)="seccion = 'emergencias'">
         <span class="nav-icon">🚨</span>
         <span>Emergencias</span>
-        <span class="badge" *ngIf="lista.length > 0">{{ lista.length }}</span>
+        <span class="badge" *ngIf="listaPendientes.length > 0">{{ listaPendientes.length }}</span>
       </button>
       <button class="nav-item" [class.active]="seccion === 'cuenta'" (click)="seccion = 'cuenta'">
         <span class="nav-icon">👤</span>
@@ -48,15 +48,15 @@
         <div class="stat-card red">
           <div class="stat-icon">🚨</div>
           <div class="stat-info">
-            <span class="stat-num">{{ lista.length }}</span>
+            <span class="stat-num">{{ listaPendientes.length }}</span>
             <span class="stat-label">Emergencias pendientes</span>
           </div>
         </div>
         <div class="stat-card green">
           <div class="stat-icon">✅</div>
           <div class="stat-info">
-            <span class="stat-num">0</span>
-            <span class="stat-label">Autos atendidos hoy</span>
+            <span class="stat-num">{{ listaActivas.length }}</span>
+            <span class="stat-label">Servicios activos</span>
           </div>
         </div>
       </div>
@@ -66,20 +66,36 @@
     <div *ngIf="seccion === 'emergencias'" class="section-fade">
       <div class="page-header">
         <div>
-          <h1>Emergencias Pendientes</h1>
-          <p>Se actualiza automáticamente cada 5 segundos.</p>
+          <h1>Gestión de Solicitudes</h1>
+          <p>Solicitudes pendientes y servicios activos sincronizados cada 5 segundos.</p>
         </div>
-        <span class="live-badge">● En vivo</span>
+        <div style="display:flex; gap:12px; align-items:center;">
+          <span class="live-badge">● En vivo</span>
+          <button class="btn-atender" (click)="cargar()">Actualizar</button>
+        </div>
       </div>
 
-      <div class="empty-state" *ngIf="lista.length === 0">
+      <div class="empty-state" *ngIf="mensajeError">
+        <span>⚠️</span>
+        <h3>Error de carga</h3>
+        <p>{{ mensajeError }}</p>
+      </div>
+
+      <div class="empty-state" *ngIf="cargando">
+        <span>⏳</span>
+        <h3>Cargando información</h3>
+        <p>Obteniendo solicitudes desde el servidor...</p>
+      </div>
+
+      <h2 style="margin: 18px 0 12px;">Solicitudes pendientes</h2>
+      <div class="empty-state" *ngIf="!cargando && listaPendientes.length === 0">
         <span>🛣️</span>
         <h3>Sin emergencias activas</h3>
         <p>No hay vehículos reportados en este momento.</p>
       </div>
 
       <div class="cards-grid">
-        <div class="emergency-card" *ngFor="let em of lista">
+        <div class="emergency-card" *ngFor="let em of listaPendientes">
           <div class="card-header">
             <span class="card-id">Solicitud #{{ em.id }}</span>
             <span class="status-badge">{{ em.estado }}</span>
@@ -99,9 +115,61 @@
                 <p>{{ em.descripcion }}</p>
               </div>
             </div>
+            <div class="card-field" *ngIf="em.transcripcion">
+              <span class="field-icon">🎙️</span>
+              <div>
+                <label>Transcripción</label>
+                <p>{{ em.transcripcion }}</p>
+              </div>
+            </div>
           </div>
           <div class="card-footer">
-            <button class="btn-atender">Atender solicitud →</button>
+            <button class="btn-atender" [disabled]="accionEnCursoId === em.id" (click)="aceptar(em)">Aceptar</button>
+            <button class="btn-atender" [disabled]="accionEnCursoId === em.id" style="background:#dc2626; margin-left:10px;" (click)="rechazar(em)">Rechazar</button>
+          </div>
+        </div>
+      </div>
+
+      <h2 style="margin: 28px 0 12px;">Servicios activos</h2>
+      <div class="empty-state" *ngIf="!cargando && listaActivas.length === 0">
+        <span>🧰</span>
+        <h3>Sin servicios activos</h3>
+        <p>Cuando aceptes una solicitud aparecerá aquí para actualizarla.</p>
+      </div>
+
+      <div class="cards-grid">
+        <div class="emergency-card" *ngFor="let em of listaActivas">
+          <div class="card-header">
+            <span class="card-id">Servicio #{{ em.id }}</span>
+            <span class="status-badge">{{ em.estado }}</span>
+          </div>
+          <div class="card-body">
+            <div class="card-field">
+              <span class="field-icon">📍</span>
+              <div>
+                <label>Ubicación</label>
+                <p>{{ em.direccion }}</p>
+              </div>
+            </div>
+            <div class="card-field">
+              <span class="field-icon">📝</span>
+              <div>
+                <label>Descripción</label>
+                <p>{{ em.descripcion }}</p>
+              </div>
+            </div>
+            <div class="card-field" *ngIf="em.observaciones">
+              <span class="field-icon">🗒️</span>
+              <div>
+                <label>Observaciones</label>
+                <p>{{ em.observaciones }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer" style="display:flex; flex-wrap:wrap; gap:10px;">
+            <button class="btn-atender" [disabled]="accionEnCursoId === em.id" (click)="cambiarEstado(em, 'En Camino')">En camino</button>
+            <button class="btn-atender" [disabled]="accionEnCursoId === em.id" (click)="cambiarEstado(em, 'En Proceso')">En proceso</button>
+            <button class="btn-atender" [disabled]="accionEnCursoId === em.id" style="background:#059669;" (click)="cambiarEstado(em, 'Finalizado')">Finalizar</button>
           </div>
         </div>
       </div>

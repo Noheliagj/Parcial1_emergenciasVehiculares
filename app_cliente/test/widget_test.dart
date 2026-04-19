@@ -1,30 +1,33 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
-import 'package:app_cliente/main.dart';
+import 'package:app_cliente/pages/login_page.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('cliente inicia sesion desde el front y entra al dashboard', (WidgetTester tester) async {
+    final mockClient = MockClient((request) async {
+      expect(request.url.path, '/login-cliente/');
+      expect(request.method, 'POST');
+      expect(request.body, contains('demo.cliente@si2.local'));
+      expect(request.body, contains('1234'));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      return http.Response(
+        '{"mensaje":"Bienvenido","usuario":"Demo","usuario_id":7}',
+        200,
+        headers: {'content-type': 'application/json'},
+      );
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpWidget(MaterialApp(home: LoginPage(client: mockClient)));
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('demo.cliente@si2.local'), findsOneWidget);
+    expect(find.text('1234'), findsOneWidget);
+
+    await tester.tap(find.text('Iniciar sesión'));
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+
+    expect(find.text('Auxilio Vial'), findsOneWidget);
   });
 }

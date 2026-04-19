@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, Text
 from sqlalchemy.orm import relationship
 from database import Base
+from datetime import datetime
 
 # --- ESTANTE 1: CLIENTES (CU-01) ---
 class Cliente(Base):
@@ -62,9 +63,39 @@ class Emergencia(Base):
     # Datos de ubicación y problema
     direccion = Column(String) # Dirección manual escrita por el cliente
     descripcion = Column(String)
-    estado = Column(String, default="Pendiente") # Pendiente, En Camino, Resuelto
-    
+    estado = Column(String, default="Pendiente") # Pendiente, Asignada, Aceptada, Rechazada, En Camino, En Proceso, Finalizado
+
+    # Campos para audio y transcripción (CU-10)
+    audio_url = Column(String, nullable=True)
+    transcripcion = Column(Text, nullable=True)
+
+    # Campos para técnico y observaciones (CU-09)
+    tecnico_id = Column(Integer, ForeignKey("tecnicos.id"), nullable=True)
+    observaciones = Column(Text, nullable=True)
+
+    # Timestamps
+    fecha_creacion = Column(DateTime, default=datetime.now)
+    fecha_actualizacion = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
     # Relaciones (Foreign Keys)
     cliente_id = Column(Integer, ForeignKey("clientes.id"))
     vehiculo_id = Column(Integer, ForeignKey("vehiculos.id"))
     taller_id = Column(Integer, ForeignKey("talleres.id"), nullable=True) # Se llena cuando el taller acepta
+
+    # Relaciones con back_populates
+    cliente = relationship("Cliente", backref="emergencias")
+    vehiculo = relationship("Vehiculo", backref="emergencias")
+    taller = relationship("Taller", backref="emergencias")
+    tecnico = relationship("Tecnico", backref="emergencias")
+
+# --- ESTANTE 6: HISTORIAL DE ESTADOS (CU-06, CU-08, CU-09) ---
+class HistorialEstado(Base):
+    __tablename__ = "historial_estados"
+    id = Column(Integer, primary_key=True, index=True)
+    emergencia_id = Column(Integer, ForeignKey("emergencias.id"))
+    estado_anterior = Column(String)
+    estado_nuevo = Column(String)
+    descripcion = Column(String, nullable=True)
+    fecha_cambio = Column(DateTime, default=datetime.now)
+
+    emergencia = relationship("Emergencia", backref="historial_estados")

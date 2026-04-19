@@ -5,6 +5,8 @@ import 'emergencia_page.dart';
 import 'login_page.dart';
 import 'package:app_cliente/pages/taller_asignado_page.dart';
 import 'package:app_cliente/pages/clasificar_incidente_page.dart';
+import 'package:app_cliente/pages/mis_solicitudes_page.dart';
+import 'package:app_cliente/pages/transcripcion_audio_page.dart';
 
 class DashboardPage extends StatefulWidget {
   final int clienteId;
@@ -205,6 +207,50 @@ class _TabSOS extends StatelessWidget {
                   icon: const Icon(Icons.auto_awesome),
                   label: const Text(
                     "Analizar choque con IA", 
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.teal,
+                    side: const BorderSide(color: Colors.teal, width: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => MisSolicitudesPage(clienteId: clienteId)),
+                    );
+                  },
+                  icon: const Icon(Icons.list_alt_rounded),
+                  label: const Text(
+                    "Mis solicitudes",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.deepPurple,
+                    side: const BorderSide(color: Colors.deepPurple, width: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const TranscripcionAudioPage()),
+                    );
+                  },
+                  icon: const Icon(Icons.graphic_eq_rounded),
+                  label: const Text(
+                    "Transcribir audio",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
                   ),
                 ),

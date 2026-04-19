@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 # Este es el "formulario" que el cliente llenará en su App (Flutter)
 class ClienteNuevo(BaseModel):
@@ -7,6 +8,7 @@ class ClienteNuevo(BaseModel):
     telefono: str
     email: str
     contrasena: str
+
 # --- FORMULARIO PARA VEHÍCULOS (CU-02) ---
 class VehiculoNuevo(BaseModel):
     placa: str
@@ -28,26 +30,69 @@ class TecnicoNuevo(BaseModel):
     nombre_completo: str
     especialidad: str
     taller_id: int # Para saber en qué taller trabaja este mecánico
-# --- FORMULARIO PARA EMERGENCIAS (CU-05) ---
 
+# --- FORMULARIO PARA EMERGENCIAS (CU-05) ---
 class EmergenciaNueva(BaseModel):
     cliente_id: int
     vehiculo_id: int
     direccion: str
     descripcion: str
+    audio_url: Optional[str] = None
 
-class EmergenciaResponse(EmergenciaNueva):
+class EmergenciaResponse(BaseModel):
     id: int
+    cliente_id: int
+    vehiculo_id: int
+    direccion: str
+    descripcion: str
     estado: str
+    audio_url: Optional[str] = None
+    transcripcion: Optional[str] = None
+    taller_id: Optional[int] = None
+    tecnico_id: Optional[int] = None
+    observaciones: Optional[str] = None
+    fecha_creacion: Optional[datetime] = None
+    fecha_actualizacion: Optional[datetime] = None
+
     class Config:
         from_attributes = True
+
+# --- SCHEMA PARA ACTUALIZAR ESTADO (CU-08, CU-09) ---
+class ActualizarEstadoRequest(BaseModel):
+    estado: str  # Aceptada, Rechazada, En Camino, En Proceso, Finalizado
+    observaciones: Optional[str] = None
+    tecnico_id: Optional[int] = None
+
+# --- SCHEMA PARA HISTORIAL DE ESTADOS (CU-06) ---
+class HistorialEstadoResponse(BaseModel):
+    id: int
+    emergencia_id: int
+    estado_anterior: str
+    estado_nuevo: str
+    descripcion: Optional[str] = None
+    fecha_cambio: datetime
+
+    class Config:
+        from_attributes = True
+
+# --- SCHEMA PARA TRANSCRIPCIÓN DE AUDIO (CU-10) ---
+class TranscripcionRequest(BaseModel):
+    emergencia_id: int
+    audio_url: str
+
+class TranscripcionResponse(BaseModel):
+    emergencia_id: int
+    transcripcion: str
+    exito: bool
+
 # --- FORMULARIO PARA INICIAR SESIÓN ---
 class LoginTaller(BaseModel):
     email: str
     contrasena: str
+
 # --- FORMULARIO PARA CREAR CLIENTE ---
 class ClienteCreate(BaseModel):
-    nombre_completo: str  # <--- ¡Corregido!
+    nombre_completo: str
     email: str
     contrasena: str
     telefono: str
@@ -61,4 +106,10 @@ class VehiculoCreate(BaseModel):
     marca: str
     modelo: str
     color: str
-    cliente_id: int 
+    cliente_id: int
+
+# --- SCHEMA PARA RESPUESTA DE EMERGENCIA CON HISTORIAL (CU-06) ---
+class EmergenciaConHistorialResponse(EmergenciaResponse):
+    historial_estados: Optional[list[HistorialEstadoResponse]] = None
+    nombre_taller: Optional[str] = None
+    nombre_tecnico: Optional[str] = None 
