@@ -63,7 +63,10 @@ class Emergencia(Base):
     direccion = Column(String) # Dirección manual escrita por el cliente
     descripcion = Column(String)
     estado = Column(String, default="Pendiente") # Pendiente, En Camino, Resuelto
-    
+    latitud = Column(Float, nullable=True)
+    longitud = Column(Float, nullable=True)
+    tipo_ia = Column(String(100), nullable=True)
+    severidad_ia = Column(String(50), nullable=True)
     # Relaciones (Foreign Keys)
     cliente_id = Column(Integer, ForeignKey("clientes.id"))
     vehiculo_id = Column(Integer, ForeignKey("vehiculos.id"))

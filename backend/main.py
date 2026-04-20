@@ -11,8 +11,14 @@ import random
 import models
 import schemas
 import google.generativeai as genai
-genai.configure(api_key="AIzaSyBHnYhdMJbV96l7e57vEaofVIQMyeJvoyw")
+import os
+from dotenv import load_dotenv
 
+load_dotenv(override=True) 
+
+# Imprime solo para confirmar (luego borras esta línea)
+llave_actual = os.getenv("GEMINI_API_KEY")
+print(f"La llave que Python está usando empieza con: {llave_actual[:10]}...")
 # El Gerente abre el restaurante
 app = FastAPI(title="API de Emergencias Vehiculares")
 
@@ -188,7 +194,15 @@ def registrar_emergencia(emergencia: schemas.EmergenciaNueva, db: Session = Depe
 def ver_emergencias_para_taller(db: Session = Depends(get_db)):
     # El taller llamará a esta ruta desde su web para ver la lista
     return db.query(models.Emergencia).filter(models.Emergencia.estado == "Pendiente").all()
-
+# Ruta para que el taller Acepte la emergencia
+@app.patch("/emergencias/{id_emergencia}/aceptar")
+def aceptar_emergencia(id_emergencia: int, db: Session = Depends(get_db)):
+    emergencia = db.query(models.Emergencia).filter(models.Emergencia.id_emergencia == id_emergencia).first()
+    if emergencia:
+        emergencia.estado = "Aceptada"
+        db.commit()
+        return {"mensaje": "Emergencia aceptada con éxito"}
+    return {"error": "Emergencia no encontrada"}
 # ---------------------------------------------------------
 # CU-07: Visualizar Taller Asignado y ETA
 # ---------------------------------------------------------
@@ -217,7 +231,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-genai.configure(api_key="AIzaSyBHnYhdMJbV96l7e57vEaofVIQMyeJvoyw")
+genai.configure(api_key=os.getenv("GEMINI_API_KEY")) # ¡Bueno!
 
 @app.post("/api/emergencias/clasificar-imagen")
 async def clasificar_incidente(imagen: UploadFile = File(...)):

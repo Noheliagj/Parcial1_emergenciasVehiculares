@@ -35,6 +35,10 @@ class EmergenciaNueva(BaseModel):
     vehiculo_id: int
     direccion: str
     descripcion: str
+    latitud: Optional[float] = None
+    longitud: Optional[float] = None
+    tipo_ia: Optional[str] = None
+    severidad_ia: Optional[str] = None
 
 class EmergenciaResponse(EmergenciaNueva):
     id: int

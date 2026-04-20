@@ -1,5 +1,4 @@
 <div class="layout">
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-brand">
       <span class="brand-icon">🔧</span>
@@ -10,18 +9,17 @@
     </div>
 
     <nav class="sidebar-nav">
-      <button class="nav-item" [class.active]="seccion === 'inicio'" (click)="seccion = 'inicio'">
-        <span class="nav-icon">🏠</span>
-        <span>Inicio</span>
+      <button class="nav-item" [class.active]="seccion === 'inicio'" (click)="seccion = 'inicio'; cerrarFicha()">
+        <span class="nav-icon">🏠</span> <span>Inicio</span>
       </button>
+
       <button class="nav-item danger" [class.active]="seccion === 'emergencias'" (click)="seccion = 'emergencias'">
-        <span class="nav-icon">🚨</span>
-        <span>Emergencias</span>
+        <span class="nav-icon">🚨</span> <span>Emergencias</span>
         <span class="badge" *ngIf="lista.length > 0">{{ lista.length }}</span>
       </button>
-      <button class="nav-item" [class.active]="seccion === 'cuenta'" (click)="seccion = 'cuenta'">
-        <span class="nav-icon">👤</span>
-        <span>Mi Cuenta</span>
+
+      <button class="nav-item" [class.active]="seccion === 'cuenta'" (click)="seccion = 'cuenta'; cerrarFicha()">
+        <span class="nav-icon">👤</span> <span>Mi Cuenta</span>
       </button>
     </nav>
 
@@ -32,115 +30,178 @@
     </div>
   </aside>
 
-  <!-- CONTENIDO PRINCIPAL -->
   <main class="main-content">
 
-    <!-- INICIO -->
     <div *ngIf="seccion === 'inicio'" class="section-fade">
-      <div class="page-header">
-        <div>
-          <h1>¡Bienvenido, {{ datosTaller?.nombre_taller }}!</h1>
-          <p>Revisa las emergencias activas o consulta la información de tu cuenta.</p>
-        </div>
-      </div>
-
+      <header class="page-header">
+        <h1>Panel de Inicio</h1>
+        <p>Bienvenido de nuevo, {{ datosTaller?.nombre }}</p>
+      </header>
       <div class="stats-grid">
         <div class="stat-card red">
-          <div class="stat-icon">🚨</div>
+          <span class="stat-icon">🚨</span>
           <div class="stat-info">
             <span class="stat-num">{{ lista.length }}</span>
             <span class="stat-label">Emergencias pendientes</span>
           </div>
         </div>
-        <div class="stat-card green">
-          <div class="stat-icon">✅</div>
-          <div class="stat-info">
-            <span class="stat-num">0</span>
-            <span class="stat-label">Autos atendidos hoy</span>
-          </div>
-        </div>
       </div>
     </div>
 
-    <!-- EMERGENCIAS -->
     <div *ngIf="seccion === 'emergencias'" class="section-fade">
-      <div class="page-header">
-        <div>
-          <h1>Emergencias Pendientes</h1>
-          <p>Se actualiza automáticamente cada 5 segundos.</p>
+
+      <div *ngIf="!emergenciaSeleccionada">
+        <header class="page-header">
+          <h1>Auxilios Vehiculares</h1>
+          <span class="live-badge">EN VIVO</span>
+        </header>
+
+        <div class="cards-grid">
+          <div *ngFor="let em of lista" class="emergency-card">
+            <div class="card-header">
+              <span class="card-id">#{{ em.id_emergencia }}</span>
+              <span class="status-badge">PENDIENTE</span>
+            </div>
+            <div class="card-body">
+              <div class="card-field">
+                <label>Diagnóstico IA</label>
+                <p><strong>{{ em.tipo_ia || 'Analizando...' }}</strong></p>
+              </div>
+            </div>
+            <div class="card-footer">
+              <button class="btn-atender" (click)="abrirFicha(em)">VER FICHA COMPLETA</button>
+            </div>
+          </div>
         </div>
-        <span class="live-badge">● En vivo</span>
       </div>
 
-      <div class="empty-state" *ngIf="lista.length === 0">
-        <span>🛣️</span>
-        <h3>Sin emergencias activas</h3>
-        <p>No hay vehículos reportados en este momento.</p>
-      </div>
+      <div *ngIf="emergenciaSeleccionada"
+        style="max-width: 450px; margin: 0 auto; padding-bottom: 40px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
 
-      <div class="cards-grid">
-        <div class="emergency-card" *ngFor="let em of lista">
-          <div class="card-header">
-            <span class="card-id">Solicitud #{{ em.id }}</span>
-            <span class="status-badge">{{ em.estado }}</span>
+        <button (click)="cerrarFicha()"
+          style="background: none; border: none; color: #4f46e5; cursor: pointer; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+          <span>←</span> Volver a la lista
+        </button>
+
+        <div
+          style="background: #f3f4f6; border-radius: 30px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2); border: 1px solid #ddd;">
+
+          <div
+            style="background: #ef4444; color: white; padding: 25px 20px; display: flex; align-items: center; gap: 15px;">
+            <span style="font-size: 22px;">←</span>
+            <h2 style="margin: 0; font-size: 19px; font-weight: 600;">Análisis del Incidente</h2>
           </div>
-          <div class="card-body">
-            <div class="card-field">
-              <span class="field-icon">📍</span>
-              <div>
-                <label>Ubicación</label>
-                <p>{{ em.direccion }}</p>
+
+          <div style="padding: 20px;">
+            <div
+              style="background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 13px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px;">
+                  Severidad</h3>
+                <span
+                  style="background: #ef4444; color: white; padding: 5px 12px; border-radius: 8px; font-weight: 800; font-size: 12px;">
+                  {{ emergenciaSeleccionada.severidad_ia || 'ALTA' }}
+                </span>
+              </div>
+              <p style="margin: 0; color: #111827; font-size: 16px; font-weight: 700;">{{ emergenciaSeleccionada.tipo_ia
+                }}</p>
+              <p style="margin: 10px 0 0; color: #4b5563; font-size: 13px; line-height: 1.5;">
+                Diagnóstico generado por IA basado en el reporte del cliente.
+              </p>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-left: 10px;">
+              <span style="color: #ef4444; font-size: 20px;">🎯</span>
+              <h3 style="margin: 0; font-size: 17px; color: #111827; font-weight: 700;">Datos de Ubicación</h3>
+            </div>
+
+            <div
+              style="background: white; border-radius: 20px; padding: 5px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+
+              <div style="padding: 15px 0; border-bottom: 1px solid #f3f4f6; display: flex; gap: 15px;">
+                <span style="font-size: 20px;">📍</span>
+                <div>
+                  <label
+                    style="display: block; font-size: 11px; color: #9ca3af; font-weight: 700; text-transform: uppercase;">Referencia</label>
+                  <p style="margin: 4px 0 0; color: #1f2937; font-size: 14px;">{{ emergenciaSeleccionada.direccion }}
+                  </p>
+                </div>
+              </div>
+
+              <div style="padding: 15px 0; border-bottom: 1px solid #f3f4f6; display: flex; gap: 15px;">
+                <span style="font-size: 20px;">📄</span>
+                <div>
+                  <label
+                    style="display: block; font-size: 11px; color: #9ca3af; font-weight: 700; text-transform: uppercase;">Descripción
+                    del Cliente</label>
+                  <p style="margin: 4px 0 0; color: #1f2937; font-size: 14px;">{{ emergenciaSeleccionada.descripcion }}
+                  </p>
+                </div>
+              </div>
+
+              <div style="padding: 15px 0; display: flex; gap: 15px;">
+                <span style="font-size: 20px;">🗺️</span>
+                <div>
+                  <label
+                    style="display: block; font-size: 11px; color: #9ca3af; font-weight: 700; text-transform: uppercase;">Ubicación
+                    GPS Exacta</label>
+                  <p style="margin: 4px 0 0; color: #1f2937; font-size: 14px; font-family: monospace;">
+                    Lat: {{ emergenciaSeleccionada.latitud }}<br>
+                    Lon: {{ emergenciaSeleccionada.longitud }}
+                  </p>
+                </div>
               </div>
             </div>
-            <div class="card-field">
-              <span class="field-icon">📝</span>
-              <div>
-                <label>Descripción</label>
-                <p>{{ em.descripcion }}</p>
-              </div>
+
+            <div style="margin-top: 30px;">
+              <button (click)="aceptarEmergencia()"
+                style="width: 100%; height: 55px; background: #e5e7eb; border: none; border-radius: 15px; color: #374151; font-weight: 700; font-size: 15px; cursor: pointer;">
+                ACEPTAR SERVICIO
+              </button>
             </div>
-          </div>
-          <div class="card-footer">
-            <button class="btn-atender">Atender solicitud →</button>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- MI CUENTA -->
     <div *ngIf="seccion === 'cuenta'" class="section-fade">
-  <div class="page-header">
-    <div>
-      <h1>Mi Cuenta</h1>
-      <p>Información registrada de tu taller.</p>
+      <header class="page-header">
+        <h1>Mi Perfil</h1>
+        <p>Información registrada de tu taller.</p>
+      </header>
+    
+      <div class="account-card"
+        style="background: white; border-radius: 20px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); max-width: 600px;">
+    
+        <div class="account-avatar"
+          style="width: 70px; height: 70px; background: #4f46e5; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; margin-bottom: 30px;">
+          {{ (datosTaller?.nombre_taller || datosTaller?.nombre || 'T').charAt(0).toUpperCase() }}
+        </div>
+    
+        <div class="account-fields">
+          <div class="account-field" style="padding: 15px 0; border-bottom: 1px solid #f3f4f6;">
+            <label
+              style="display: block; font-size: 11px; color: #9ca3af; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">
+              Nombre del Taller
+            </label>
+            <p style="margin: 0; font-size: 18px; font-weight: 600; color: #111827;">
+              {{ datosTaller?.nombre_taller || datosTaller?.nombre || 'Nombre no disponible' }}
+            </p>
+          </div>
+    
+          <div class="account-field" style="padding: 15px 0;">
+            <label
+              style="display: block; font-size: 11px; color: #9ca3af; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">
+              Usuario Responsable
+            </label>
+            <p style="margin: 0; font-size: 16px; color: #374151;">
+              {{ datosTaller?.usuario || datosTaller?.username || 'Usuario no disponible' }}
+            </p>
+          </div>
+        </div>
+    
+      </div>
     </div>
-  </div>
 
-  <div class="account-card">
-    <div class="account-avatar">
-      {{ datosTaller?.nombre_taller ? datosTaller.nombre_taller.charAt(0) : 'T' }}
-    </div>
+  </main>
+</div> ```
 
-    <div class="account-fields">
-      <div class="account-field">
-        <label>Nombre del Taller</label>
-        <p><strong>{{ datosTaller?.nombre_taller || 'No disponible' }}</strong></p>
-      </div>
-
-      <div class="account-field">
-        <label>Correo Electrónico</label>
-        <p>{{ datosTaller?.email || 'No disponible' }}</p>
-      </div>
-
-      <div class="account-field">
-        <label>Teléfono</label>
-        <p>{{ datosTaller?.telefono || 'Sin teléfono registrado' }}</p>
-      </div>
-
-      <div class="account-field">
-        <label>Dirección</label>
-        <p>{{ datosTaller?.direccion || 'Sin dirección registrada' }}</p>
-      </div>
-    </div>
-  </div>
-</div>

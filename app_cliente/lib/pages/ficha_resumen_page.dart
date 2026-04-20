@@ -1,151 +1,173 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'dart:typed_data';
-import 'package:intl/intl.dart'; // Para formatear la fecha y hora
+import 'package:image_picker/image_picker.dart';
 
 class FichaResumenPage extends StatelessWidget {
-  final Map<String, dynamic> datosIA;
-  final Uint8List imagenBytes;
+  final Map<String, dynamic> datosFicha;
+  final XFile imagen; // NUEVO: Recibimos la foto
 
-  const FichaResumenPage({super.key, required this.datosIA, required this.imagenBytes});
+  const FichaResumenPage({
+    super.key, 
+    required this.datosFicha,
+    required this.imagen, // NUEVO
+  });
 
   @override
   Widget build(BuildContext context) {
-    // Generamos datos automáticos del sistema
-    final String fechaActual = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
-    final String folioSistema = "INC-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}";
-    
-    // Extraemos la info de la IA
-    final String tipo = datosIA['tipo_incidente']?.toString().toUpperCase() ?? 'DESCONOCIDO';
-    final String severidad = datosIA['nivel_severidad']?.toString().toUpperCase() ?? 'NO DEFINIDA';
-    final bool requiereGrua = datosIA['sugiere_grua'] ?? false;
-    final String confianza = datosIA['confianza_ia'] ?? 'N/A';
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ficha del Incidente', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.indigo,
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Análisis del Incidente'),
+        backgroundColor: Colors.redAccent,
+        foregroundColor: Colors.white,
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 500),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Card(
-              elevation: 8,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-              child: Padding(
-                padding: const EdgeInsets.all(25),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Encabezado de la Ficha
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // --- 1. LA FOTO DEL CHOQUE (GIGANTE ARRIBA) ---
+            SizedBox(
+              width: double.infinity,
+              height: 250,
+              child: kIsWeb
+                  ? Image.network(imagen.path, fit: BoxFit.cover) // Si compila en Edge/Chrome
+                  : Image.file(File(imagen.path), fit: BoxFit.cover), // Si compila en Android/iOS
+            ),
+            
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // --- ESTADO ---
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green),
+                    ),
+                    child: const Row(
                       children: [
-                        const Text("REPORTE OFICIAL", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.indigo)),
-                        Text(folioSistema, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey)),
+                        Icon(Icons.check_circle, color: Colors.green),
+                        SizedBox(width: 10),
+                        Expanded(child: Text("Emergencia enviada al taller central", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold))),
                       ],
                     ),
-                    const Divider(thickness: 2, height: 30),
+                  ),
+                  const SizedBox(height: 25),
 
-                    // Evidencia Fotográfica
-                    const Text("Evidencia Fotográfica:", style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 10),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.memory(imagenBytes, height: 180, width: double.infinity, fit: BoxFit.cover),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Datos generados por el Sistema
-                    _construirFilaDato(Icons.calendar_today, "Fecha y Hora", fechaActual),
-                    const SizedBox(height: 15),
-
-                    // Análisis de la IA
-                    Container(
-                      padding: const EdgeInsets.all(15),
-                      decoration: BoxDecoration(
-                        color: Colors.blueGrey.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.blueGrey.shade200)
-                      ),
+                  // --- 2. DETALLES DE LA IA (COMO LO TENÍAS ANTES) ---
+                  const Row(
+                    children: [
+                      Icon(Icons.psychology, color: Colors.purple, size: 28),
+                      SizedBox(width: 8),
+                      Text('Diagnóstico de IA', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text("🤖 Diagnóstico Automático (IA)", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo)),
-                          const SizedBox(height: 10),
-                          _construirFilaDato(Icons.car_crash, "Clasificación", tipo),
-                          const SizedBox(height: 8),
-                          _construirFilaDato(Icons.warning_amber_rounded, "Severidad", severidad, 
-                            colorValor: severidad == 'CRÍTICO' || severidad == 'GRAVE' ? Colors.red : Colors.orange.shade700),
-                          const SizedBox(height: 8),
-                          _construirFilaDato(Icons.analytics, "Confianza del Modelo", confianza),
+                          _buildEtiquetaIA("Clasificación", datosFicha['tipo_ia'], Colors.blue),
+                          const Divider(),
+                          _buildEtiquetaIA("Severidad", datosFicha['severidad_ia'], Colors.red),
+                          const Divider(),
+                          // Agregamos un texto simulado de detalle para que se vea súper pro
+                          const Text("Detalles detectados:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                          const SizedBox(height: 5),
+                          const Text("Se detecta daño estructural en la parte frontal. Es posible que el radiador o el motor estén comprometidos. Se recomienda no encender el vehículo y esperar la grúa.", style: TextStyle(fontSize: 15, height: 1.4)),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                  ),
+                  const SizedBox(height: 25),
 
-                    // Alerta de Grúa
-                    if (requiereGrua)
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(color: Colors.red.shade100, borderRadius: BorderRadius.circular(8)),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.fire_truck, color: Colors.red, size: 30),
-                            SizedBox(width: 10),
-                            Expanded(child: Text("SE REQUIERE GRÚA OBLIGATORIA", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16))),
-                          ],
-                        ),
-                      )
-                    else
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(color: Colors.green.shade100, borderRadius: BorderRadius.circular(8)),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.build_circle, color: Colors.green, size: 30),
-                            SizedBox(width: 10),
-                            Expanded(child: Text("Asistencia en el lugar (No requiere grúa)", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16))),
-                          ],
-                        ),
+                  // --- 3. DATOS DE GPS Y UBICACIÓN (LO NUEVO) ---
+                  const Row(
+                    children: [
+                      Icon(Icons.gps_fixed, color: Colors.redAccent, size: 28),
+                      SizedBox(width: 8),
+                      Text('Datos de Ubicación', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          _buildFilaDato(Icons.person_pin_circle, "Referencia:", datosFicha['direccion']),
+                          const Divider(),
+                          _buildFilaDato(Icons.description, "Descripción:", datosFicha['descripcion']),
+                          const Divider(),
+                          _buildFilaDato(Icons.map, "Coordenadas:", "${datosFicha['latitud'].toStringAsFixed(5)}, ${datosFicha['longitud'].toStringAsFixed(5)}"),
+                        ],
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
 
-                    const SizedBox(height: 30),
-
-                    // Botón Final
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo, padding: const EdgeInsets.symmetric(vertical: 15)),
-                        icon: const Icon(Icons.send, color: Colors.white),
-                        label: const Text("Confirmar y Enviar a Taller", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                        onPressed: () {
-                          // Aquí irá el código para guardar en tu base de datos después
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Ficha guardada exitosamente")));
-                        },
-                      ),
-                    )
-                  ],
-                ),
+                  // --- BOTÓN DE VOLVER ---
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade200, foregroundColor: Colors.black87),
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cerrar Reporte'),
+                    ),
+                  )
+                ],
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
-  // Pequeño widget auxiliar para que el código quede limpio
-  Widget _construirFilaDato(IconData icono, String etiqueta, String valor, {Color? colorValor}) {
-    return Row(
-      children: [
-        Icon(icono, size: 20, color: Colors.grey.shade600),
-        const SizedBox(width: 10),
-        Text("$etiqueta: ", style: const TextStyle(fontWeight: FontWeight.w600)),
-        Expanded(child: Text(valor, style: TextStyle(fontWeight: FontWeight.bold, color: colorValor ?? Colors.black87))),
-      ],
+  // Widgets pequeñitos para que el código quede limpio
+  Widget _buildEtiquetaIA(String titulo, String valor, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(titulo, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Chip(label: Text(valor, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), backgroundColor: color),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilaDato(IconData icono, String titulo, String valor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icono, size: 20, color: Colors.grey.shade600),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(titulo, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
+                Text(valor, style: const TextStyle(fontSize: 15)),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

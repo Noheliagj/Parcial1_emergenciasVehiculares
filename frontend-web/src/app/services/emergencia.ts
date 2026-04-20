@@ -2,22 +2,35 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+// Definimos la estructura exacta que nos manda FastAPI
 export interface Emergencia {
-  id: number;
-  direccion: string;
+  id_emergencia?: number;
+  cliente_id: number;
   descripcion: string;
+  direccion: string;
+  latitud: number;
+  longitud: number;
+  tipo_ia: string;
+  severidad_ia: string;
   estado: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
-export class EmergenciaService { // La CLASE se llama así, pero el ARCHIVO es emergencia.ts
-  private apiUrl = 'http://127.0.0.1:8000/emergencias-taller/'; 
+export class EmergenciaService {
+  // Tu IP de FastAPI
+  private apiUrl = 'http://localhost:8000';
 
   constructor(private http: HttpClient) { }
 
-  obtenerPendientes(): Observable<Emergencia[]> {
-    return this.http.get<Emergencia[]>(this.apiUrl);
+  // Obtener la lista
+  getPendientes(): Observable<Emergencia[]> {
+    return this.http.get<Emergencia[]>(`${this.apiUrl}/emergencias-taller/`);
+  }
+
+  // Aceptar el caso
+  aceptarEmergencia(id: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/emergencias/${id}/aceptar`, {});
   }
 }
