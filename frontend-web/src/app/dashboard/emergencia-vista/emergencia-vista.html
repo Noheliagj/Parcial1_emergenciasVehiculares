@@ -1,214 +1,420 @@
-<div class="layout">
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-brand">
-      <span class="brand-icon">🔧</span>
-      <div>
-        <h2>TallerPro</h2>
-        <small>Sistema de Gestión</small>
-      </div>
-    </div>
+<style>
+  /* Encabezado Premium */
+  .header-premium {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+  }
 
-    <nav class="sidebar-nav">
-      <button class="nav-item" [class.active]="seccion === 'inicio'" (click)="seccion = 'inicio'">
-        <span class="nav-icon">🏠</span>
-        <span>Inicio</span>
-      </button>
-      <button class="nav-item danger" [class.active]="seccion === 'emergencias'" (click)="seccion = 'emergencias'">
-        <span class="nav-icon">🚨</span>
-        <span>Emergencias</span>
-        <span class="badge" *ngIf="listaPendientes.length > 0">{{ listaPendientes.length }}</span>
-      </button>
-      <button class="nav-item" [class.active]="seccion === 'cuenta'" (click)="seccion = 'cuenta'">
-        <span class="nav-icon">👤</span>
-        <span>Mi Cuenta</span>
-      </button>
-    </nav>
+  .header-premium h1 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.5px;
+  }
 
-    <div class="sidebar-footer">
-      <button class="btn-logout" (click)="salir()">
-        <span>⏻</span> Cerrar sesión
-      </button>
-    </div>
-  </aside>
+  .header-premium p {
+    color: #64748b;
+    font-size: 15px;
+    margin: 0;
+  }
 
-  <!-- CONTENIDO PRINCIPAL -->
-  <main class="main-content">
+  .badge-manual {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    border: 1px solid #cbd5e1;
+  }
 
-    <!-- INICIO -->
-    <div *ngIf="seccion === 'inicio'" class="section-fade">
-      <div class="page-header">
-        <div>
-          <h1>¡Bienvenido, {{ datosTaller?.nombre_taller }}!</h1>
-          <p>Revisa las emergencias activas o consulta la información de tu cuenta.</p>
-        </div>
-      </div>
+  /* Botones Modernos */
+  .btn-moderno {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13.5px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
 
-      <div class="stats-grid">
-        <div class="stat-card red">
-          <div class="stat-icon">🚨</div>
-          <div class="stat-info">
-            <span class="stat-num">{{ listaPendientes.length }}</span>
-            <span class="stat-label">Emergencias pendientes</span>
-          </div>
-        </div>
-        <div class="stat-card green">
-          <div class="stat-icon">✅</div>
-          <div class="stat-info">
-            <span class="stat-num">{{ listaActivas.length }}</span>
-            <span class="stat-label">Servicios activos</span>
-          </div>
-        </div>
-      </div>
-    </div>
+  .btn-moderno:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
 
-    <!-- EMERGENCIAS -->
-    <div *ngIf="seccion === 'emergencias'" class="section-fade">
-      <div class="page-header">
-        <div>
-          <h1>Gestión de Solicitudes</h1>
-          <p>Solicitudes pendientes y servicios activos sincronizados cada 5 segundos.</p>
-        </div>
-        <div style="display:flex; gap:12px; align-items:center;">
-          <span class="live-badge">● En vivo</span>
-          <button class="btn-atender" (click)="cargar()">Actualizar</button>
-        </div>
-      </div>
+  .btn-moderno:active {
+    transform: translateY(0);
+  }
 
-      <div class="empty-state" *ngIf="mensajeError">
-        <span>⚠️</span>
-        <h3>Error de carga</h3>
-        <p>{{ mensajeError }}</p>
-      </div>
+  .btn-moderno:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
 
-      <div class="empty-state" *ngIf="cargando">
-        <span>⏳</span>
-        <h3>Cargando información</h3>
-        <p>Obteniendo solicitudes desde el servidor...</p>
-      </div>
+  /* Colores de Botones */
+  .btn-actualizar {
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    color: white;
+  }
 
-      <h2 style="margin: 18px 0 12px;">Solicitudes pendientes</h2>
-      <div class="empty-state" *ngIf="!cargando && listaPendientes.length === 0">
-        <span>🛣️</span>
-        <h3>Sin emergencias activas</h3>
-        <p>No hay vehículos reportados en este momento.</p>
-      </div>
+  .btn-aceptar {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+  }
 
-      <div class="cards-grid">
-        <div class="emergency-card" *ngFor="let em of listaPendientes">
-          <div class="card-header">
-            <span class="card-id">Solicitud #{{ em.id }}</span>
-            <span class="status-badge">{{ em.estado }}</span>
-          </div>
-          <div class="card-body">
-            <div class="card-field">
-              <span class="field-icon">📍</span>
-              <div>
-                <label>Ubicación</label>
-                <p>{{ em.direccion }}</p>
-              </div>
-            </div>
-            <div class="card-field">
-              <span class="field-icon">📝</span>
-              <div>
-                <label>Descripción</label>
-                <p>{{ em.descripcion }}</p>
-              </div>
-            </div>
-            <div class="card-field" *ngIf="em.transcripcion">
-              <span class="field-icon">🎙️</span>
-              <div>
-                <label>Transcripción</label>
-                <p>{{ em.transcripcion }}</p>
-              </div>
-            </div>
-          </div>
-          <div class="card-footer">
-            <button class="btn-atender" [disabled]="accionEnCursoId === em.id" (click)="aceptar(em)">Aceptar</button>
-            <button class="btn-atender" [disabled]="accionEnCursoId === em.id" style="background:#dc2626; margin-left:10px;" (click)="rechazar(em)">Rechazar</button>
-          </div>
-        </div>
-      </div>
+  .btn-rechazar {
+    background: #fee2e2;
+    color: #ef4444;
+    border: 1px solid #fca5a5;
+    box-shadow: none;
+  }
 
-      <h2 style="margin: 28px 0 12px;">Servicios activos</h2>
-      <div class="empty-state" *ngIf="!cargando && listaActivas.length === 0">
-        <span>🧰</span>
-        <h3>Sin servicios activos</h3>
-        <p>Cuando aceptes una solicitud aparecerá aquí para actualizarla.</p>
-      </div>
+  .btn-rechazar:hover {
+    background: #fecaca;
+  }
 
-      <div class="cards-grid">
-        <div class="emergency-card" *ngFor="let em of listaActivas">
-          <div class="card-header">
-            <span class="card-id">Servicio #{{ em.id }}</span>
-            <span class="status-badge">{{ em.estado }}</span>
-          </div>
-          <div class="card-body">
-            <div class="card-field">
-              <span class="field-icon">📍</span>
-              <div>
-                <label>Ubicación</label>
-                <p>{{ em.direccion }}</p>
-              </div>
-            </div>
-            <div class="card-field">
-              <span class="field-icon">📝</span>
-              <div>
-                <label>Descripción</label>
-                <p>{{ em.descripcion }}</p>
-              </div>
-            </div>
-            <div class="card-field" *ngIf="em.observaciones">
-              <span class="field-icon">🗒️</span>
-              <div>
-                <label>Observaciones</label>
-                <p>{{ em.observaciones }}</p>
-              </div>
-            </div>
-          </div>
-          <div class="card-footer" style="display:flex; flex-wrap:wrap; gap:10px;">
-            <button class="btn-atender" [disabled]="accionEnCursoId === em.id" (click)="cambiarEstado(em, 'En Camino')">En camino</button>
-            <button class="btn-atender" [disabled]="accionEnCursoId === em.id" (click)="cambiarEstado(em, 'En Proceso')">En proceso</button>
-            <button class="btn-atender" [disabled]="accionEnCursoId === em.id" style="background:#059669;" (click)="cambiarEstado(em, 'Finalizado')">Finalizar</button>
-          </div>
-        </div>
-      </div>
-    </div>
+  .btn-ia {
+    background: linear-gradient(135deg, #a855f7, #7e22ce);
+    color: white;
+    border-radius: 20px;
+  }
 
-    <!-- MI CUENTA -->
-    <div *ngIf="seccion === 'cuenta'" class="section-fade">
-  <div class="page-header">
+  .btn-estado {
+    background: #e0e7ff;
+    color: #4338ca;
+    font-weight: 700;
+    border: 1px solid #c7d2fe;
+    box-shadow: none;
+  }
+
+  .btn-estado:hover {
+    background: #c7d2fe;
+  }
+
+  .btn-finalizar {
+    background: #1e293b;
+    color: white;
+  }
+
+  .btn-cancelar {
+    background: #f1f5f9;
+    color: #475569;
+    box-shadow: none;
+    border: 1px solid #cbd5e1;
+  }
+
+  .btn-cancelar:hover {
+    background: #e2e8f0;
+  }
+
+  /* Contenedor de botones para que no se amontonen */
+  .grupo-botones {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+</style>
+
+<div class="section-fade">
+
+  <div class="header-premium">
     <div>
-      <h1>Mi Cuenta</h1>
-      <p>Información registrada de tu taller.</p>
+      <h1>Gestión de Solicitudes</h1>
+      <p>Gestión manual de auxilios pendientes y activos.</p>
+    </div>
+    <div style="display:flex; gap:12px; align-items:center;">
+      <span class="badge-manual">🖐️ Modo Manual</span>
+      <button class="btn-moderno btn-actualizar" (click)="cargar()">🔄 Actualizar ahora</button>
     </div>
   </div>
 
-  <div class="account-card">
-    <div class="account-avatar">
-      {{ datosTaller?.nombre_taller ? datosTaller.nombre_taller.charAt(0) : 'T' }}
+  <div class="empty-state" *ngIf="mensajeError">
+    <span>⚠️</span>
+    <h3>Error de carga</h3>
+    <p>{{ mensajeError }}</p>
+  </div>
+
+  <h2 style="margin: 18px 0 12px; color: #1e293b; font-size: 20px;">Solicitudes pendientes</h2>
+
+  <div class="empty-state" *ngIf="!cargando && listaPendientes.length === 0">
+    <span>🛣️</span>
+    <h3>Sin emergencias activas</h3>
+    <p>No hay vehículos reportados en este momento.</p>
+  </div>
+
+  <div class="cards-grid">
+    <div class="emergency-card" *ngFor="let em of listaPendientes">
+
+      <div class="card-header">
+        <span class="card-id">Solicitud #{{ em.id }}</span>
+        <span class="status-badge">{{ em.estado }}</span>
+      </div>
+
+      <div class="card-body">
+
+        <div class="evidence-image" *ngIf="em.foto_url">
+          <label>📷 Foto de evidencia</label>
+          <img [src]="em.foto_url" alt="Evidencia" (click)="abrirImagen(em.foto_url)" class="evidence-thumb"
+            title="Clic para ampliar" />
+        </div>
+
+        <div class="ia-badges" *ngIf="em.tipo_ia || em.severidad_ia">
+          <label>🤖 Diagnóstico IA</label>
+          <div class="badges-row">
+            <span class="ia-badge tipo" *ngIf="em.tipo_ia">{{ em.tipo_ia }}</span>
+            <span class="ia-badge" [class]="'severidad-' + em.severidad_ia?.toLowerCase()" *ngIf="em.severidad_ia">{{
+              em.severidad_ia }}</span>
+          </div>
+        </div>
+
+        <div class="card-field">
+          <span class="field-icon">📍</span>
+          <div>
+            <label>Ubicación</label>
+            <p>{{ em.direccion }}</p>
+            <a *ngIf="em.latitud && em.longitud"
+              [href]="'https://www.google.com/maps/search/?api=1&query=' + em.latitud + ',' + em.longitud"
+              target="_blank" class="maps-link">🗺️ Ver en Google Maps</a>
+          </div>
+        </div>
+
+        <div class="card-field">
+          <span class="field-icon">📝</span>
+          <div>
+            <label>Descripción</label>
+            <p>{{ em.descripcion }}</p>
+          </div>
+        </div>
+
+        <div class="card-field" *ngIf="em.transcripcion">
+          <span class="field-icon">🎙️</span>
+          <div>
+            <label>Transcripción de audio</label>
+            <p class="transcripcion-text">{{ em.transcripcion }}</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="card-footer" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px;">
+
+        <div *ngIf="!mostrarFormTiempo[em.id]" class="grupo-botones">
+          <button class="btn-moderno btn-aceptar" (click)="abrirFormularioAceptacion(em.id)">
+            ✅ Aceptar solicitud
+          </button>
+
+          <button class="btn-moderno btn-rechazar" (click)="rechazar(em)">
+            ❌ Rechazar
+          </button>
+
+          <button class="btn-moderno btn-ia" (click)="abrirFichaIA(em)">
+            ✨ Ver Ficha IA
+          </button>
+        </div>
+
+        <div *ngIf="mostrarFormTiempo[em.id]" class="form-tiempo">
+        
+          <h4 style="margin: 0 0 4px; color: #1e1b4b;">Enviar Propuesta de Auxilio</h4>
+          <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">
+            El cliente verá tu tiempo estimado y decidirá si acepta a tu taller.
+          </p>
+        
+          <div class="form-field">
+            <label>📍 Tiempo de llegada (Calculado por GPS)</label>
+            <div
+              style="padding: 12px; background: #e0e7ff; border-radius: 8px; color: #4338ca; font-weight: 700; border: 1px solid #c7d2fe;">
+              ⏱️ LLegada estimada en {{ calcularTiempoAutomatico(em.latitud, em.longitud) }} minutos.
+              <div style="font-size: 11px; font-weight: normal; margin-top: 4px; color: #6366f1;">
+                El sistema calculó la distancia entre tu taller y la ubicación del cliente de forma automática.
+              </div>
+            </div>
+          </div>
+        
+          <div class="form-field">
+            <label>👷 Técnico a enviar</label>
+        
+            <div *ngIf="cargandoTecnicos" style="color: #6b7280; font-size: 13px;">
+              Cargando técnicos disponibles...
+            </div>
+        
+            <div *ngIf="!cargandoTecnicos && tecnicosDisponibles.length === 0" class="alerta-sin-tecnicos">
+              ⚠️ No hay técnicos disponibles en este momento.
+              Puedes enviar la propuesta sin asignar uno todavía.
+            </div>
+        
+            <select *ngIf="!cargandoTecnicos && tecnicosDisponibles.length > 0" [(ngModel)]="tecnicoSeleccionado[em.id]"
+              class="form-select">
+              <option [ngValue]="undefined">— Sin asignar aún —</option>
+              <option *ngFor="let tec of tecnicosDisponibles" [ngValue]="tec.id">
+                {{ tec.nombre_completo }} · {{ tec.especialidad }}
+              </option>
+            </select>
+          </div>
+        
+          <div class="form-field">
+            <label>💬 Mensaje para el cliente (opcional)</label>
+            <input type="text" class="form-input" placeholder="Ej: Tenemos grúa lista para salir"
+              [(ngModel)]="mensajesAceptacion[em.id]" />
+          </div>
+        
+          <div class="grupo-botones">
+            <button class="btn-moderno btn-aceptar" [disabled]="accionEnCursoId === em.id" (click)="aceptarConTiempo(em)">
+              <span *ngIf="accionEnCursoId !== em.id">🚀 Enviar Propuesta</span>
+              <span *ngIf="accionEnCursoId === em.id">⏳ Enviando...</span>
+            </button>
+            <button class="btn-moderno btn-cancelar" (click)="mostrarFormTiempo[em.id] = false">
+              Cancelar
+            </button>
+          </div>
+        
+        </div>
+
+    </div>
+  </div>
+  <h2 style="margin: 28px 0 12px; color: #1e293b; font-size: 20px;">Servicios activos</h2>
+
+  <div class="empty-state" *ngIf="!cargando && listaActivas.length === 0">
+    <span>🧰</span>
+    <h3>Sin servicios activos</h3>
+    <p>Cuando aceptes una solicitud aparecerá aquí.</p>
+  </div>
+
+  <div class="cards-grid">
+    <div class="emergency-card activa" *ngFor="let em of listaActivas">
+
+      <div class="card-header">
+        <span class="card-id">Servicio #{{ em.id }}</span>
+        <span class="status-badge activo">{{ em.estado }}</span>
+      </div>
+
+      <div class="card-body">
+
+        <div class="evidence-image" *ngIf="em.foto_url">
+          <label>📷 Foto de evidencia</label>
+          <img [src]="em.foto_url" alt="Evidencia" (click)="abrirImagen(em.foto_url)" class="evidence-thumb" />
+        </div>
+
+        <div class="ia-badges" *ngIf="em.tipo_ia || em.severidad_ia">
+          <label>🤖 Diagnóstico IA</label>
+          <div class="badges-row">
+            <span class="ia-badge tipo" *ngIf="em.tipo_ia">{{ em.tipo_ia }}</span>
+            <span class="ia-badge" [class]="'severidad-' + em.severidad_ia?.toLowerCase()" *ngIf="em.severidad_ia">{{
+              em.severidad_ia }}</span>
+          </div>
+        </div>
+
+        <div class="card-field">
+          <span class="field-icon">📍</span>
+          <div>
+            <label>Ubicación</label>
+            <p>{{ em.direccion }}</p>
+            <a *ngIf="em.latitud && em.longitud"
+              [href]="'https://www.google.com/maps/search/?api=1&query=' + em.latitud + ',' + em.longitud"
+              target="_blank" class="maps-link">🗺️ Ver en Google Maps</a>
+          </div>
+        </div>
+
+        <div class="card-field">
+          <span class="field-icon">📝</span>
+          <div>
+            <label>Descripción</label>
+            <p>{{ em.descripcion }}</p>
+          </div>
+        </div>
+
+        <div class="card-field" *ngIf="em.transcripcion">
+          <span class="field-icon">🎙️</span>
+          <div>
+            <label>Transcripción</label>
+            <p class="transcripcion-text">{{ em.transcripcion }}</p>
+          </div>
+        </div>
+
+        <div class="card-field" *ngIf="em.observaciones">
+          <span class="field-icon">🗒️</span>
+          <div>
+            <label>Observaciones</label>
+            <p>{{ em.observaciones }}</p>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="card-footer" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px;">
+        <div class="grupo-botones">
+          <button class="btn-moderno btn-estado" [disabled]="accionEnCursoId === em.id"
+            (click)="cambiarEstado(em, 'En Camino')">🚗 En camino</button>
+          <button class="btn-moderno btn-estado" [disabled]="accionEnCursoId === em.id"
+            (click)="cambiarEstado(em, 'En Proceso')">🔧 En proceso</button>
+          <button class="btn-moderno btn-finalizar" [disabled]="accionEnCursoId === em.id"
+            (click)="cambiarEstado(em, 'Finalizado')">🏁 Finalizar</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" *ngIf="imagenAmpliada" (click)="cerrarImagen()">
+  <div class="modal-contenido" (click)="$event.stopPropagation()">
+    <button class="modal-cerrar" (click)="cerrarImagen()">✕</button>
+    <img [src]="imagenAmpliada" alt="Evidencia ampliada" class="modal-imagen" />
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="emergenciaFichaSeleccionada">
+  <div class="modal-content ficha-ia-box">
+    <button class="btn-cerrar-modal" (click)="cerrarFichaIA()">✖</button>
+
+    <div class="ficha-header">
+      <span class="ia-icon">🤖</span>
+      <h2>Ficha Técnica Preliminar</h2>
+      <p>Análisis generado por Inteligencia Artificial basado en el reporte del cliente.</p>
     </div>
 
-    <div class="account-fields">
-      <div class="account-field">
-        <label>Nombre del Taller</label>
-        <p><strong>{{ datosTaller?.nombre_taller || 'No disponible' }}</strong></p>
+    <div class="ficha-body">
+
+      <div class="info-bloque">
+        <h4>📋 Diagnóstico Sugerido</h4>
+        <p *ngIf="!emergenciaFichaSeleccionada.diagnostico_ia" style="color: #6366f1; font-weight: bold;">
+          ⏳ La IA está leyendo el problema...
+        </p>
+        <p *ngIf="emergenciaFichaSeleccionada.diagnostico_ia" style="line-height: 1.6;">
+          {{ emergenciaFichaSeleccionada.diagnostico_ia }}
+        </p>
       </div>
 
-      <div class="account-field">
-        <label>Correo Electrónico</label>
-        <p>{{ datosTaller?.email || 'No disponible' }}</p>
+      <div class="info-bloque">
+        <h4>⚠️ Severidad del Incidente</h4>
+        <span *ngIf="!emergenciaFichaSeleccionada.severidad_ia" style="color: #6366f1;">⏳ Calculando...</span>
+        <span *ngIf="emergenciaFichaSeleccionada.severidad_ia" class="badge-severidad"
+          [ngClass]="'sev-' + (emergenciaFichaSeleccionada.severidad_ia?.toLowerCase() || 'baja')">
+          {{ emergenciaFichaSeleccionada.severidad_ia }}
+        </span>
       </div>
 
-      <div class="account-field">
-        <label>Teléfono</label>
-        <p>{{ datosTaller?.telefono || 'Sin teléfono registrado' }}</p>
+      <div class="info-bloque">
+        <h4>🔧 Herramientas Recomendadas a llevar</h4>
+        <p *ngIf="!emergenciaFichaSeleccionada.herramientas_sugeridas" style="color: #6366f1;">⏳ Buscando
+          herramientas...</p>
+        <p *ngIf="emergenciaFichaSeleccionada.herramientas_sugeridas" style="font-style: italic;">
+          {{ emergenciaFichaSeleccionada.herramientas_sugeridas }}
+        </p>
       </div>
 
-      <div class="account-field">
-        <label>Dirección</label>
-        <p>{{ datosTaller?.direccion || 'Sin dirección registrada' }}</p>
-      </div>
     </div>
   </div>
 </div>

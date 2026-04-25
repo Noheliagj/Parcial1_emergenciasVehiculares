@@ -1,0 +1,119 @@
+<!-- ================================================================
+     ARCHIVO: src/app/dashboard/tecnicos/tecnicos.html
+     CREA este archivo nuevo (antes el template estaba inline en el .ts)
+     ================================================================ -->
+
+<div class="tecnicos-container">
+
+    <div class="page-header">
+        <div>
+            <h2>Gestión de Técnicos</h2>
+            <p>Registra a tus trabajadores y gestiona su disponibilidad.</p>
+        </div>
+    </div>
+
+    <!-- ── Formulario para registrar nuevo técnico ── -->
+    <div class="card form-card">
+        <h3>➕ Añadir Nuevo Técnico</h3>
+
+        <form (ngSubmit)="registrarTecnico()" #tecnicoForm="ngForm">
+
+            <div class="form-group">
+                <label>Nombre Completo</label>
+                <input type="text" name="nombre" [(ngModel)]="nuevoTecnico.nombre_completo" required
+                    placeholder="Ej. Jorge Taboada">
+            </div>
+
+            <div class="form-group">
+                <label>Especialidad</label>
+                <input type="text" name="especialidad" [(ngModel)]="nuevoTecnico.especialidad" required
+                    placeholder="Ej. Mecánico General, Electricista">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Usuario (para login en la app)</label>
+                    <input type="text" name="usuario" [(ngModel)]="nuevoTecnico.usuario" required
+                        placeholder="Ej. jorge_t">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" name="contrasena" [(ngModel)]="nuevoTecnico.contrasena" required
+                        placeholder="Mínimo 4 caracteres">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" [disabled]="!tecnicoForm.valid">
+                💾 Guardar Técnico
+            </button>
+        </form>
+
+        <div *ngIf="mensaje" class="alert success">{{ mensaje }}</div>
+        <div *ngIf="mensajeError" class="alert error">{{ mensajeError }}</div>
+    </div>
+
+    <!-- ── Tabla de técnicos registrados ── -->
+    <div class="card list-card">
+        <h3>👷‍♂️ Mi Equipo</h3>
+
+        <!-- Estado vacío -->
+        <div class="empty-team" *ngIf="listaTecnicos.length === 0">
+            <span>👤</span>
+            <p>No hay técnicos registrados aún.</p>
+        </div>
+
+        <!-- Tabla con técnicos -->
+        <div class="table-wrapper" *ngIf="listaTecnicos.length > 0">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Especialidad</th>
+                        <th>Usuario</th>
+                        <th>Disponibilidad</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let tec of listaTecnicos">
+                        <td>{{ tec.nombre_completo }}</td>
+                        <td><span class="badge-especialidad">{{ tec.especialidad }}</span></td>
+                        <td><code>{{ tec.usuario || '—' }}</code></td>
+
+                        <!-- ── Columna de disponibilidad ── -->
+                        <td>
+                            <span *ngIf="tec.disponible" class="badge-disponible">
+                                🟢 Disponible
+                            </span>
+                            <span *ngIf="!tec.disponible" class="badge-no-disponible">
+                                🔴 {{ tec.motivo_no_disponible || 'No disponible' }}
+                            </span>
+                        </td>
+
+                        <!-- ── Acciones: cambiar disponibilidad ── -->
+                        <td>
+                            <!-- Si está no disponible → mostrar "Poner disponible" -->
+                            <button *ngIf="!tec.disponible" class="btn-accion btn-disponible"
+                                (click)="marcarDisponible(tec.id)" title="Marcar como disponible">
+                                ✅ Disponible
+                            </button>
+
+                            <!-- Si está disponible → mostrar "No disponible" -->
+                            <button *ngIf="tec.disponible" class="btn-accion btn-no-disponible"
+                                (click)="marcarNoDisponible(tec.id)" title="Marcar como no disponible">
+                                🔴 No disponible
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Leyenda -->
+        <p class="leyenda" *ngIf="listaTecnicos.length > 0">
+            💡 Solo los técnicos <strong>disponibles</strong> aparecen en el
+            selector al aceptar una emergencia.
+        </p>
+    </div>
+
+</div>

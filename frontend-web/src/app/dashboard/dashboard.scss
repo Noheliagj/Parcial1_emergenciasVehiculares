@@ -1,0 +1,136 @@
+/* ============================================================
+   ARCHIVO: app/dashboard/dashboard.scss
+   
+   Estilos del LAYOUT (sidebar + main-content).
+   Los estilos específicos de cada sección van en su propio .scss
+   ============================================================ */
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    background: #f8f9fb;
+}
+
+// ─── SIDEBAR ───────────────────────────────────────────────────
+.sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: #1e1b4b;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 28px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+    .brand-icon {
+        font-size: 28px;
+    }
+
+    h2 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    small {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.45);
+    }
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: white;
+    }
+
+    &.active {
+        background: rgba(79, 70, 229, 0.5);
+        color: white;
+    }
+
+    &.danger.active {
+        background: rgba(239, 68, 68, 0.4);
+    }
+
+    .nav-icon {
+        font-size: 16px;
+    }
+
+    .badge {
+        margin-left: auto;
+        background: #ef4444;
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 20px;
+    }
+}
+
+.sidebar-footer {
+    padding: 20px 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-logout {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1.5px solid rgba(239, 68, 68, 0.5);
+    color: #fca5a5;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+
+    &:hover {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: #ef4444;
+        color: white;
+    }
+}
+
+// ─── MAIN ───────────────────────────────────────────────────────
+.main-content {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+}

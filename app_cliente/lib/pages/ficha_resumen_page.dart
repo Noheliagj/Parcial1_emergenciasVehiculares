@@ -5,12 +5,12 @@ import 'package:image_picker/image_picker.dart';
 
 class FichaResumenPage extends StatelessWidget {
   final Map<String, dynamic> datosFicha;
-  final XFile imagen; // NUEVO: Recibimos la foto
+  final XFile imagen;
 
   const FichaResumenPage({
     super.key, 
     required this.datosFicha,
-    required this.imagen, // NUEVO
+    required this.imagen,
   });
 
   @override
@@ -25,13 +25,13 @@ class FichaResumenPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- 1. LA FOTO DEL CHOQUE (GIGANTE ARRIBA) ---
+            // --- 1. LA FOTO DEL CHOQUE ---
             SizedBox(
               width: double.infinity,
               height: 250,
               child: kIsWeb
-                  ? Image.network(imagen.path, fit: BoxFit.cover) // Si compila en Edge/Chrome
-                  : Image.file(File(imagen.path), fit: BoxFit.cover), // Si compila en Android/iOS
+                  ? Image.network(imagen.path, fit: BoxFit.cover) 
+                  : Image.file(File(imagen.path), fit: BoxFit.cover), 
             ),
             
             Padding(
@@ -58,7 +58,7 @@ class FichaResumenPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 25),
 
-                  // --- 2. DETALLES DE LA IA (COMO LO TENÍAS ANTES) ---
+                  // --- 2. DETALLES DE LA IA ---
                   const Row(
                     children: [
                       Icon(Icons.psychology, color: Colors.purple, size: 28),
@@ -75,11 +75,10 @@ class FichaResumenPage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildEtiquetaIA("Clasificación", datosFicha['tipo_ia'], Colors.blue),
+                          _buildEtiquetaIA("Clasificación", datosFicha['tipo_ia'] ?? "Pendiente", Colors.blue),
                           const Divider(),
-                          _buildEtiquetaIA("Severidad", datosFicha['severidad_ia'], Colors.red),
+                          _buildEtiquetaIA("Severidad", datosFicha['severidad_ia'] ?? "Pendiente", Colors.red),
                           const Divider(),
-                          // Agregamos un texto simulado de detalle para que se vea súper pro
                           const Text("Detalles detectados:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
                           const SizedBox(height: 5),
                           const Text("Se detecta daño estructural en la parte frontal. Es posible que el radiador o el motor estén comprometidos. Se recomienda no encender el vehículo y esperar la grúa.", style: TextStyle(fontSize: 15, height: 1.4)),
@@ -89,7 +88,7 @@ class FichaResumenPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 25),
 
-                  // --- 3. DATOS DE GPS Y UBICACIÓN (LO NUEVO) ---
+                  // --- 3. DATOS DE GPS Y UBICACIÓN ---
                   const Row(
                     children: [
                       Icon(Icons.gps_fixed, color: Colors.redAccent, size: 28),
@@ -105,11 +104,17 @@ class FichaResumenPage extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         children: [
-                          _buildFilaDato(Icons.person_pin_circle, "Referencia:", datosFicha['direccion']),
+                          _buildFilaDato(Icons.person_pin_circle, "Referencia:", datosFicha['direccion'] ?? "No proporcionada"),
                           const Divider(),
-                          _buildFilaDato(Icons.description, "Descripción:", datosFicha['descripcion']),
+                          _buildFilaDato(Icons.description, "Descripción:", datosFicha['descripcion'] ?? "Sin descripción"),
                           const Divider(),
-                          _buildFilaDato(Icons.map, "Coordenadas:", "${datosFicha['latitud'].toStringAsFixed(5)}, ${datosFicha['longitud'].toStringAsFixed(5)}"),
+                          _buildFilaDato(
+                            Icons.map, 
+                            "Coordenadas:", 
+                            (datosFicha['latitud'] != null && datosFicha['longitud'] != null)
+                                ? "${datosFicha['latitud'].toStringAsFixed(5)}, ${datosFicha['longitud'].toStringAsFixed(5)}"
+                                : "0.00000, 0.00000"
+                          ),
                         ],
                       ),
                     ),
@@ -135,15 +140,21 @@ class FichaResumenPage extends StatelessWidget {
     );
   }
 
-  // Widgets pequeñitos para que el código quede limpio
-  Widget _buildEtiquetaIA(String titulo, String valor, Color color) {
+  // --- WIDGETS AUXILIARES ---
+  Widget _buildEtiquetaIA(String titulo, String? valor, Color color) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(titulo, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          Chip(label: Text(valor, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)), backgroundColor: color),
+          Chip(
+            label: Text(
+              valor ?? "---", 
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)
+            ), 
+            backgroundColor: color
+          ),
         ],
       ),
     );

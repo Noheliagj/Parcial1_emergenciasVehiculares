@@ -30,6 +30,12 @@ class TecnicoNuevo(BaseModel):
     nombre_completo: str
     especialidad: str
     taller_id: int # Para saber en qué taller trabaja este mecánico
+    usuario: Optional[str] = None      # Ej: "juanito_mec"
+    contrasena: Optional[str] = None   # El taller la define
+
+class LoginTecnico(BaseModel):
+    usuario: str
+    contrasena: str
 
 # --- FORMULARIO PARA EMERGENCIAS (CU-05) ---
 class EmergenciaNueva(BaseModel):
@@ -121,3 +127,36 @@ class EmergenciaConHistorialResponse(EmergenciaResponse):
     historial_estados: Optional[list[HistorialEstadoResponse]] = None
     nombre_taller: Optional[str] = None
     nombre_tecnico: Optional[str] = None 
+
+# Schema para que el taller acepte con tiempo estimado
+class AceptarConTiempoRequest(BaseModel):
+    taller_id: int
+    tiempo_estimado_minutos: int = 15
+    mensaje: Optional[str] = None
+    tecnico_id: Optional[int] = None
+ 
+# Schema de respuesta de un taller que aceptó
+class TallerQueAceptoResponse(BaseModel):
+    aceptacion_id: int
+    taller_id: int
+    nombre_taller: str
+    direccion_taller: Optional[str]
+    telefono: Optional[str]
+    tiempo_estimado_minutos: Optional[int]
+    mensaje: Optional[str]
+
+class PagoNuevo(BaseModel):
+     emergencia_id: int
+     cliente_id: int
+     taller_id: int
+     monto: float
+     metodo_pago: str = "tarjeta"
+
+class TallerNuevo(BaseModel):
+    nombre_taller: str
+    direccion: str
+    telefono: str
+    email: str
+    contrasena: str
+    latitud: float # <-- Agregado
+    longitud: float # <-- Agregado

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, Text
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean, Float, Text
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime
@@ -40,6 +40,9 @@ class Taller(Base):
     telefono = Column(String)
     email = Column(String, unique=True, index=True)
     contrasena = Column(String)
+    # En models.py, dentro de class Taller:
+    latitud = Column(Float, nullable=True)
+    longitud = Column(Float, nullable=True)
 
     # Relación: Un taller tiene varios técnicos
     tecnicos = relationship("Tecnico", back_populates="taller_trabajo")
@@ -53,6 +56,14 @@ class Tecnico(Base):
     nombre_completo = Column(String)
     especialidad = Column(String) # Ej: Mecánico general, Eléctrico, Llantas
     
+    usuario          = Column(String, unique=True, nullable=True)
+    contrasena       = Column(String, nullable=True)
+
+     # NUEVO: disponibilidad (CU-14)
+    # True = disponible para atender, False = ocupado/fuera de turno
+    disponible       = Column(Boolean, default=True)
+    motivo_no_disponible = Column(String, nullable=True)  # "fuera de horario", "en servicio", etc.
+
     # Esta es la "cuerdita" que une al técnico con su taller
     taller_id = Column(Integer, ForeignKey("talleres.id"))
     taller_trabajo = relationship("Taller", back_populates="tecnicos")
@@ -72,6 +83,8 @@ class Emergencia(Base):
     # Campos para audio y transcripción (CU-10)
     audio_url = Column(String, nullable=True)
     transcripcion = Column(Text, nullable=True)
+
+    foto_url = Column(String, nullable=True)    
 
     # Campos para técnico y observaciones (CU-09)
     tecnico_id = Column(Integer, ForeignKey("tecnicos.id"), nullable=True)
@@ -103,3 +116,58 @@ class HistorialEstado(Base):
     fecha_cambio = Column(DateTime, default=datetime.now)
 
     emergencia = relationship("Emergencia", backref="historial_estados")
+
+# --- TABLA NUEVA: ACEPTACIONES DE TALLERES ---
+# Guarda cada vez que un taller acepta UNA emergencia.
+# Así el cliente puede ver la lista y elegir uno.
+class AceptacionTaller(Base):
+    __tablename__ = "aceptaciones_taller"
+ 
+    id             = Column(Integer, primary_key=True, index=True)
+    emergencia_id  = Column(Integer, ForeignKey("emergencias.id"))
+    taller_id      = Column(Integer, ForeignKey("talleres.id"))
+    # Tiempo estimado de llegada en minutos (lo ingresa el taller)
+    tiempo_estimado_minutos = Column(Integer, nullable=True)
+    # Mensaje adicional del taller (ej: "Tengo grúa disponible")
+    mensaje        = Column(String, nullable=True)
+    # Estado de esta aceptación específica
+    # "pendiente" = esperando que el cliente elija
+    # "confirmada" = el cliente eligió este taller
+    # "rechazada" = el cliente eligió otro taller
+    estado         = Column(String, default="pendiente")
+    fecha          = Column(DateTime, default=datetime.now)
+ 
+    emergencia     = relationship("Emergencia", backref="aceptaciones")
+    taller         = relationship("Taller", backref="aceptaciones")
+
+# CU16 PAGOS
+
+class Pago(Base):
+    __tablename__ = "pagos"
+    
+    id              = Column(Integer, primary_key=True)
+    emergencia_id   = Column(Integer, ForeignKey("emergencias.id"))
+    cliente_id      = Column(Integer, ForeignKey("clientes.id"))
+    taller_id       = Column(Integer, ForeignKey("talleres.id"))
+    monto           = Column(Float)          # En bolivianos (BOB) o USD
+    metodo_pago     = Column(String)         # "tarjeta", "qr", "efectivo"
+    estado_pago     = Column(String, default="pendiente")  # pendiente, completado, fallido
+    referencia      = Column(String, nullable=True)        # ID de transacción Stripe/MP
+    fecha_pago      = Column(DateTime, nullable=True)
+    fecha_creacion  = Column(DateTime, default=datetime.now)
+    
+    emergencia      = relationship("Emergencia", backref="pago")
+
+# ==========================================
+# CU-18: TABLA DE TOKENS PARA NOTIFICACIONES
+# ==========================================
+class TokenNotificacion(Base):
+    __tablename__ = "tokens_notificacion"
+    
+    id          = Column(Integer, primary_key=True)
+    cliente_id  = Column(Integer, ForeignKey("clientes.id"), nullable=True)
+    taller_id   = Column(Integer, ForeignKey("talleres.id"), nullable=True)
+    token_fcm   = Column(String)        # Token del dispositivo (Firebase)
+    plataforma  = Column(String)        # "android", "ios", "web"
+    activo      = Column(Boolean, default=True)
+    fecha       = Column(DateTime, default=datetime.now)

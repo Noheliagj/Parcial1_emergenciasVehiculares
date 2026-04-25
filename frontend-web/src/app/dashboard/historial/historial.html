@@ -1,0 +1,174 @@
+<div class="historial-container section-fade">
+
+    <!-- ── Encabezado ── -->
+    <div class="page-header">
+        <div>
+            <h1>Historial de Atenciones</h1>
+            <p>Todos los servicios finalizados por tu taller (CU-15).</p>
+        </div>
+        <button class="btn-actualizar" (click)="cargarHistorial()">
+            🔄 Actualizar
+        </button>
+    </div>
+
+    <!-- ── Tarjetas de estadísticas rápidas ── -->
+    <div class="stats-row">
+        <div class="stat-mini azul">
+            <span class="stat-num">{{ historial.length }}</span>
+            <span class="stat-label">Total atenciones</span>
+        </div>
+        <div class="stat-mini verde">
+            <span class="stat-num">{{ historialFiltrado.length }}</span>
+            <span class="stat-label">Mostrando ahora</span>
+        </div>
+        <div class="stat-mini morado">
+            <span class="stat-num">{{ listaTecnicos.length }}</span>
+            <span class="stat-label">Técnicos en el equipo</span>
+        </div>
+    </div>
+
+    <!-- ── Filtros ── -->
+    <div class="filtros-bar">
+
+        <!-- Búsqueda de texto libre -->
+        <div class="filtro-grupo">
+            <label>🔍 Buscar</label>
+            <input type="text" class="filtro-input" placeholder="Cliente, dirección, tipo de incidente..."
+                [(ngModel)]="filtroBusqueda" (ngModelChange)="aplicarFiltros()" />
+        </div>
+
+        <!-- Filtro por técnico -->
+        <div class="filtro-grupo">
+            <label>👷 Técnico</label>
+            <select class="filtro-select" [(ngModel)]="filtroTecnico" (ngModelChange)="aplicarFiltros()">
+                <option value="todos">Todos los técnicos</option>
+                <option *ngFor="let tec of listaTecnicos" [value]="tec.nombre_completo">
+                    {{ tec.nombre_completo }}
+                </option>
+            </select>
+        </div>
+
+    </div>
+
+    <!-- ── Estado: Cargando ── -->
+    <div class="estado-vacio" *ngIf="cargando">
+        <div class="spinner"></div>
+        <p>Cargando historial...</p>
+    </div>
+
+    <!-- ── Estado: Error ── -->
+    <div class="estado-vacio error" *ngIf="error && !cargando">
+        <span>⚠️</span>
+        <h3>Error al cargar</h3>
+        <p>{{ error }}</p>
+        <button class="btn-actualizar" (click)="cargarHistorial()">Reintentar</button>
+    </div>
+
+    <!-- ── Estado: Sin resultados ── -->
+    <div class="estado-vacio" *ngIf="!cargando && !error && historialFiltrado.length === 0">
+        <span>📋</span>
+        <h3>Sin atenciones registradas</h3>
+        <p *ngIf="historial.length === 0">
+            Aquí aparecerán los servicios que hayas completado.
+        </p>
+        <p *ngIf="historial.length > 0">
+            Ningún resultado coincide con los filtros aplicados.
+        </p>
+    </div>
+
+    <!-- ── TABLA DE HISTORIAL ── -->
+    <div class="tabla-wrapper" *ngIf="!cargando && !error && historialFiltrado.length > 0">
+        <table class="tabla-historial">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Técnico</th>
+                    <th>Tipo de incidente</th>
+                    <th>Severidad</th>
+                    <th>Dirección</th>
+                    <th>Observaciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let item of historialFiltrado">
+
+                    <!-- ID del servicio -->
+                    <td>
+                        <span class="servicio-id">#{{ item.id }}</span>
+                    </td>
+
+                    <!-- Fecha formateada -->
+                    <td class="celda-fecha">
+                        <span class="fecha-principal">
+                            {{ item.fecha | date:'dd/MM/yyyy' }}
+                        </span>
+                        <span class="fecha-hora">
+                            {{ item.fecha | date:'HH:mm' }}
+                        </span>
+                    </td>
+
+                    <!-- Nombre del cliente -->
+                    <td>
+                        <div class="cliente-info">
+                            <span class="cliente-avatar">
+                                {{ item.cliente_nombre?.charAt(0) || 'C' }}
+                            </span>
+                            <span>{{ item.cliente_nombre || 'Sin nombre' }}</span>
+                        </div>
+                    </td>
+
+                    <!-- Técnico que atendió -->
+                    <td>
+                        <span *ngIf="item.tecnico_nombre" class="badge-tecnico">
+                            👷 {{ item.tecnico_nombre }}
+                        </span>
+                        <span *ngIf="!item.tecnico_nombre" class="texto-vacio">
+                            Sin asignar
+                        </span>
+                    </td>
+
+                    <!-- Tipo de incidente con ícono -->
+                    <td>
+                        <span *ngIf="item.tipo_incidente" class="badge-tipo">
+                            {{ iconoTipo(item.tipo_incidente) }} {{ item.tipo_incidente }}
+                        </span>
+                        <span *ngIf="!item.tipo_incidente" class="texto-vacio">—</span>
+                    </td>
+
+                    <!-- Severidad con color dinámico -->
+                    <td>
+                        <span *ngIf="item.severidad" class="badge-severidad"
+                            [style.background]="colorSeveridad(item.severidad) + '22'"
+                            [style.color]="colorSeveridad(item.severidad)"
+                            [style.border-color]="colorSeveridad(item.severidad)">
+                            {{ item.severidad }}
+                        </span>
+                        <span *ngIf="!item.severidad" class="texto-vacio">—</span>
+                    </td>
+
+                    <!-- Dirección del incidente -->
+                    <td class="celda-direccion">
+                        <span>{{ item.direccion || 'No registrada' }}</span>
+                    </td>
+
+                    <!-- Observaciones del técnico -->
+                    <td class="celda-obs">
+                        <span *ngIf="item.observaciones" class="obs-texto">
+                            {{ item.observaciones }}
+                        </span>
+                        <span *ngIf="!item.observaciones" class="texto-vacio">—</span>
+                    </td>
+
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ── Pie con contador ── -->
+    <div class="tabla-pie" *ngIf="historialFiltrado.length > 0">
+        Mostrando {{ historialFiltrado.length }} de {{ historial.length }} atenciones
+    </div>
+
+</div>

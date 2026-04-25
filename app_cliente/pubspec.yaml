@@ -39,8 +39,11 @@ dependencies:
   geolocator: ^14.0.2
   permission_handler: ^12.0.1
   image_picker: ^1.2.1
-  file_picker: any
+  file_picker: ^11.0.2
   intl: ^0.20.2
+  url_launcher: ^6.3.2
+  speech_to_text: ^7.3.0
+  flutter_local_notifications: ^17.0.0
 
 dev_dependencies:
   flutter_test:

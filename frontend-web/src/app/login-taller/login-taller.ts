@@ -20,26 +20,31 @@ export class LoginTaller {
   constructor(private router: Router, private authService: AuthService) {}
 
   ingresar() {
-  if (this.credenciales.email !== '' && this.credenciales.contrasena !== '') {
-    
-    this.authService.login(this.credenciales.email, this.credenciales.contrasena).subscribe({
-      next: (datosReales) => {
-        // 1. Imprimimos en la consola para ver que todo llegó bien
-        console.log('¡Bienvenida!', datosReales);
-        
-        // 2. ¡LA ORDEN MÁGICA! Le decimos a Angular que cambie de pantalla
-        this.router.navigate(['/dashboard']); 
-      },
-      error: (err: any) => {
-        alert('Ups! Usuario o clave incorrectos');
-        console.error(err);
-      }
-    });
+    if (this.credenciales.email !== '' && this.credenciales.contrasena !== '') {
 
-  } else {
-    alert('Rellena los campos primero');
+      this.authService.login(this.credenciales.email, this.credenciales.contrasena).subscribe({
+        next: (datosReales: any) => { // <-- Le añadimos ": any" por si acaso
+          console.log('¡Bienvenida!', datosReales);
+
+          // 1. ✨ ¡AQUÍ ESTÁ LA MAGIA! Guardamos los datos del taller en el navegador
+          // Usamos datosReales.datos porque así lo manda tu FastAPI
+          if (datosReales && datosReales.datos) {
+            localStorage.setItem('taller', JSON.stringify(datosReales.datos));
+          }
+
+          // 2. Le decimos a Angular que cambie de pantalla
+          this.router.navigate(['/dashboard']);
+        },
+        error: (err: any) => {
+          alert('Ups! Usuario o clave incorrectos');
+          console.error(err);
+        }
+      });
+
+    } else {
+      alert('Rellena los campos primero');
+    }
   }
-}
 
   // Opcional: Si prefieres usar (click)="irARegistro()" en vez de routerLink
   irARegistro() {

@@ -1,0 +1,177 @@
+
+<div class="tecnico-layout">
+    <header class="tecnico-header">
+        <div class="header-info">
+            <div class="avatar">{{ datosTecnico?.nombre_completo?.charAt(0) || 'T' }}</div>
+            <div>
+                <h2>Hola, {{ datosTecnico?.nombre_completo }}!</h2>
+                <span class="especialidad">{{ datosTecnico?.especialidad }}</span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <!-- Toggle de disponibilidad (CU-14) -->
+            <button class="btn-disponibilidad" [class.disponible]="disponible" [class.no-disponible]="!disponible"
+                (click)="toggleDisponibilidad()">
+                <span>{{ disponible ? '🟢 Disponible' : '🔴 No disponible' }}</span>
+            </button>
+            <button class="btn-salir" (click)="salir()">Salir</button>
+        </div>
+    </header>
+
+    <!-- Input para motivo de no disponibilidad -->
+    <div class="motivo-panel" *ngIf="mostrarMotivoInput">
+        <p>¿Por qué no estás disponible?</p>
+        <div class="motivo-opciones">
+            <button (click)="motivoNoDisponible='Fuera de horario'; guardarDisponibilidad()">
+                ⏰ Fuera de horario
+            </button>
+            <button (click)="motivoNoDisponible='En otra emergencia'; guardarDisponibilidad()">
+                🚗 En otra emergencia
+            </button>
+            <button (click)="motivoNoDisponible='Descanso'; guardarDisponibilidad()">
+                ☕ Descanso
+            </button>
+        </div>
+    </div>
+
+    <!-- Navegación -->
+    <nav class="tecnico-nav">
+        <button [class.activo]="seccion === 'inicio'" (click)="cambiarSeccion('inicio')">
+            🔧 Mi asignación
+        </button>
+        <button [class.activo]="seccion === 'historial'" (click)="cambiarSeccion('historial')">
+            📋 Historial
+        </button>
+    </nav>
+
+    <main class="tecnico-contenido">
+
+        <!-- ── SECCIÓN INICIO: Asignación actual ── -->
+        <div *ngIf="seccion === 'inicio'">
+
+            <!-- Sin asignación -->
+            <div class="sin-asignacion" *ngIf="!tieneAsignacion">
+                <span>✅</span>
+                <h3>Sin asignaciones activas</h3>
+                <p>El taller te notificará cuando tengas una emergencia asignada.</p>
+                <div class="pulsing-circle"></div>
+            </div>
+
+            <!-- Con asignación -->
+            <div class="asignacion-card" *ngIf="tieneAsignacion && asignacionActual">
+
+                <div class="asignacion-header">
+                    <span class="emergencia-id">Emergencia #{{ asignacionActual.id }}</span>
+                    <span class="estado-badge">{{ asignacionActual.estado }}</span>
+                </div>
+
+                <!-- Foto del incidente -->
+                <div class="foto-container" *ngIf="asignacionActual.foto_url">
+                    <img [src]="asignacionActual.foto_url" alt="Foto del incidente" class="foto-incidente" />
+                </div>
+
+                <!-- Datos del cliente y dirección -->
+                <div class="info-field">
+                    <label>👤 Cliente</label>
+                    <p>{{ asignacionActual.cliente_nombre }}</p>
+                </div>
+
+                <div class="info-field">
+                    <label>📍 Dirección</label>
+                    <p>{{ asignacionActual.direccion }}</p>
+                    <button class="btn-maps" (click)="abrirGoogleMaps()">
+                        🗺️ Abrir en Google Maps
+                    </button>
+                </div>
+
+                <div class="info-field">
+                    <label>📝 Descripción del problema</label>
+                    <p>{{ asignacionActual.descripcion }}</p>
+                </div>
+
+                <!-- Diagnóstico IA -->
+                <div class="ia-box" *ngIf="asignacionActual.tipo_ia">
+                    <div class="ia-titulo">🤖 Diagnóstico IA</div>
+                    <div class="ia-badges">
+                        <span class="badge azul">🔧 {{ asignacionActual.tipo_ia }}</span>
+                        <span class="badge naranja">⚠️ {{ asignacionActual.severidad_ia }}</span>
+                    </div>
+                    <p class="ia-recomendacion" *ngIf="asignacionActual.tipo_ia">
+                        <strong>Recomendación:</strong>
+                        <span *ngIf="asignacionActual.tipo_ia === 'batería'">
+                            Trae multímetro y cargador de batería. Problema eléctrico.
+                        </span>
+                        <span *ngIf="asignacionActual.tipo_ia === 'llanta'">
+                            Lleva herramienta de cambio de llanta o llanta de repuesto.
+                        </span>
+                        <span *ngIf="asignacionActual.tipo_ia === 'choque'">
+                            Requiere evaluación de daños estructurales. Trae grúa si el nivel es Grave/Crítico.
+                        </span>
+                        <span *ngIf="asignacionActual.tipo_ia === 'motor'">
+                            Especialista en motor necesario. Posible falla mecánica grave.
+                        </span>
+                        <span *ngIf="asignacionActual.tipo_ia === 'otros'">
+                            Evalúa en sitio. Lleva kit básico completo.
+                        </span>
+                    </p>
+                </div>
+
+                <!-- Transcripción de audio -->
+                <div class="info-field" *ngIf="asignacionActual.transcripcion">
+                    <label>🎙️ Audio del cliente</label>
+                    <p class="transcripcion">{{ asignacionActual.transcripcion }}</p>
+                </div>
+
+                <!-- Botones de acción según estado -->
+                <div class="acciones-estado">
+                    <!-- Estado: Confirmada o Aceptada → puede salir -->
+                    <button *ngIf="['Confirmada','Aceptada'].includes(asignacionActual.estado)"
+                        class="btn-accion btn-camino" [disabled]="accionando" (click)="cambiarEstado('En Camino')">
+                        🚗 Voy de ida
+                    </button>
+
+                    <!-- Estado: En Camino → puede indicar que llegó -->
+                    <button *ngIf="asignacionActual.estado === 'En Camino'" class="btn-accion btn-llegue"
+                        [disabled]="accionando" (click)="cambiarEstado('En Proceso')">
+                        📍 ¡Llegué al lugar!
+                    </button>
+
+                    <!-- Estado: En Proceso → puede finalizar -->
+                    <button *ngIf="asignacionActual.estado === 'En Proceso'" class="btn-accion btn-finalizar"
+                        [disabled]="accionando" (click)="cambiarEstado('Finalizado')">
+                        ✅ Finalizar servicio
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ── SECCIÓN HISTORIAL (CU-15) ── -->
+        <div *ngIf="seccion === 'historial'">
+            <h2>Mis atenciones anteriores</h2>
+
+            <div class="sin-asignacion" *ngIf="historial.length === 0">
+                <span>📋</span>
+                <h3>Sin historial aún</h3>
+                <p>Aquí aparecerán los servicios que hayas completado.</p>
+            </div>
+
+            <div class="historial-card" *ngFor="let item of historial">
+                <div class="historial-header">
+                    <span class="historial-id">#{{ item.id }}</span>
+                    <span class="historial-fecha">{{ item.fecha | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <p><strong>Cliente:</strong> {{ item.cliente_nombre }}</p>
+                <p><strong>Dirección:</strong> {{ item.direccion }}</p>
+                <p *ngIf="item.tipo_incidente">
+                    <strong>Tipo:</strong> {{ item.tipo_incidente }}
+                </p>
+                <p *ngIf="item.observaciones">
+                    <strong>Observaciones:</strong> {{ item.observaciones }}
+                </p>
+            </div>
+        </div>
+
+    </main>
+</div>
+`;

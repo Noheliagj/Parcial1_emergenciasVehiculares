@@ -1,0 +1,255 @@
+/* ================================================================
+   ARCHIVO: src/app/dashboard/tecnicos/tecnicos.scss
+   CREA este archivo nuevo junto a tecnicos.html y tecnicos.component.ts
+   ================================================================ */
+
+.tecnicos-container {
+    padding: 10px;
+}
+
+.page-header {
+    margin-bottom: 24px;
+
+    h2 {
+        color: #1e1b4b;
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0 0 4px;
+    }
+
+    p {
+        color: #6b7280;
+        font-size: 14px;
+        margin: 0;
+    }
+}
+
+/* ── Cards ── */
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+
+    h3 {
+        margin: 0 0 18px;
+        color: #1e1b4b;
+        font-size: 18px;
+    }
+}
+
+/* ── Formulario ── */
+.form-group {
+    margin-bottom: 15px;
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #4b5563;
+        font-size: 13px;
+    }
+
+    input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        box-sizing: border-box;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+
+        &:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+        }
+    }
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+
+    .form-group {
+        flex: 1;
+    }
+}
+
+.btn-primary {
+    background: #6366f1;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: 700;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.2s;
+
+    &:hover {
+        background: #4f46e5;
+    }
+
+    &:disabled {
+        background: #a5a6f6;
+        cursor: not-allowed;
+    }
+}
+
+/* ── Alertas ── */
+.alert {
+    padding: 12px;
+    margin-top: 15px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+
+    &.success {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #6ee7b7;
+    }
+
+    &.error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fca5a5;
+    }
+}
+
+/* ── Tabla de técnicos ── */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 14px;
+
+    th {
+        padding: 12px 14px;
+        text-align: left;
+        background: #f9fafb;
+        color: #4b5563;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+        color: #374151;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    tr:hover td {
+        background: #fafafa;
+    }
+}
+
+/* ── Badges ── */
+.badge-especialidad {
+    background: #e0e7ff;
+    color: #4338ca;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.badge-disponible {
+    background: #d1fae5;
+    color: #065f46;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.badge-no-disponible {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+code {
+    background: #f3f4f6;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #374151;
+}
+
+/* ── Botones de acción en la tabla ── */
+.btn-accion {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+
+    &:hover {
+        opacity: 0.85;
+    }
+}
+
+.btn-disponible {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+}
+
+.btn-no-disponible {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+/* ── Estado vacío ── */
+.empty-team {
+    text-align: center;
+    padding: 40px 20px;
+
+    span {
+        font-size: 40px;
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    p {
+        color: #9ca3af;
+        font-size: 15px;
+    }
+}
+
+/* ── Leyenda informativa ── */
+.leyenda {
+    margin-top: 16px;
+    padding: 10px 14px;
+    background: #f0f4ff;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #4b5563;
+    border-left: 3px solid #6366f1;
+}

@@ -110,4 +110,59 @@
       text-decoration: underline;
     }
   }
+/* =========================================
+   ESTILOS DEL BOTÓN GPS
+   ========================================= */
+.gps-container {
+  margin-top: 15px;
+  margin-bottom: 20px;
+}
+
+.btn-gps {
+  width: 100%;
+  padding: 12px 15px;
+  background-color: #f8f9fa;
+  /* Fondo gris claro */
+  color: #4f46e5;
+  /* Color azul/índigo */
+  border: 2px dashed #4f46e5;
+  /* Borde punteado moderno */
+  border-radius: 10px;
+  /* Bordes redondeados como tus inputs */
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  /* Efecto al pasar el mouse */
+  &:hover {
+    background-color: #e0e7ff;
+  }
+
+  /* Estilo cuando ya se detectó la ubicación (Verde) */
+  &.detectado {
+    background-color: #ecfdf5;
+    color: #059669;
+    border: 2px solid #10b981;
+    /* Borde sólido verde */
+  }
+
+  .gps-icon {
+    font-size: 18px;
+  }
+}
+
+.gps-coords {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #059669;
+  /* Letra verde */
+  text-align: center;
+  font-weight: 500;
+}
+  
 }
